@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fs.swms.mainData.mapper.SupplierMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.fs.swms.mainData.entity.Supplier">
+        <id column="ID" property="id" />
+        <result column="SUPPLIER_NO" property="supplierNo" />
+        <result column="SUPPLIER_NAME" property="supplierName" />
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATOR" property="creator" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="OPERATOR" property="operator" />
+        <result column="DEL_FLAG" property="delFlag" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        ID, SUPPLIER_NO, SUPPLIER_NAME,CREATE_TIME,CREATOR,UPDATE_TIME, OPERATOR,DEL_FLAG
+    </sql>
+
+    <select id="selectSupplierList" resultType="com.fs.swms.mainData.entity.Supplier" parameterType="com.fs.swms.mainData.entity.Supplier">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM T_BD_SUPPLIER
+        WHERE DEL_FLAG = 0
+        <if test="supplier.supplierName != null and supplier.supplierName != ''">
+            AND SUPPLIER_NAME = #{supplier.supplierName}
+        </if>
+        ORDER BY ID DESC
+    </select>
+    <select id="selectSupplierAll" resultType="com.fs.swms.mainData.entity.Supplier" parameterType="com.fs.swms.mainData.entity.Supplier">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM T_BD_SUPPLIER
+        WHERE DEL_FLAG = 0
+        ORDER BY ID DESC
+    </select>
+
+    <update id="deleteBySupplierNo">
+        UPDATE T_BD_SUPPLIER SET del_flag='1' WHERE del_flag='0' AND SUPPLIER_NO=#{supplierNo}
+    </update>
+
+
+
+</mapper>
