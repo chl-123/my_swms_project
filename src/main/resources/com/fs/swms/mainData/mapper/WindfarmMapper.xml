@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fs.swms.mainData.mapper.WindfarmMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.fs.swms.mainData.entity.Windfarm">
+        <result column="ID" property="id" />
+        <result column="CUSTOMER_ID" property="customerId" />
+        <result column="WINDFARM" property="windfarm" />
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATOR" property="creator" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="OPERATOR" property="operator" />
+        <result column="DEL_FLAG" property="delFlag" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        ID, CUSTOMER_ID, WINDFARM,CREATE_TIME,CREATOR,UPDATE_TIME,OPERATOR,DEL_FLAG
+    </sql>
+
+    <update id="deleteByCustomerId">
+        UPDATE T_BD_WINDFARM SET del_flag='1' WHERE del_flag='0' AND CUSTOMER_ID=#{customerId}
+    </update>
+
+</mapper>

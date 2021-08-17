@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fs.swms.mainData.mapper.ProductMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.fs.swms.mainData.entity.Product">
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATOR" property="creator" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="OPERATOR" property="operator" />
+        <result column="DEL_FLAG" property="delFlag" />
+        <result column="ID" property="id" />
+        <result column="CUSTOMER_ID" property="customerId" />
+        <result column="FIGURE_NO" property="figureNo" />
+        <result column="BOX_NO" property="boxNo" />
+        <result column="POWER" property="power" />
+        <result column="SPEED_RATIO" property="speedRatio" />
+        <result column="ASSEMBLY_DATE" property="assemblyDate" />
+        <result column="MANUFACTURE_DATE" property="manufactureDate" />
+        <result column="REMARKS" property="remarks" />
+        <result column="FILES" property="files" />
+        <result column="CONTRACT_NO" property="contractNo" />
+        <result column="JOB_NO" property="jobNo" />
+        <result column="WINDFARM_ID" property="windfarmId" />
+        <result column="FAN_NO" property="fanNo" />
+        <result column="CONN_DATE" property="connDate" />
+        <result column="EXPIRE_DATE" property="expireDate" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        CREATE_TIME,
+        CREATOR,
+        UPDATE_TIME,
+        OPERATOR,
+        DEL_FLAG,
+        ID, CUSTOMER_ID, FIGURE_NO, BOX_NO, POWER, SPEED_RATIO, ASSEMBLY_DATE, MANUFACTURE_DATE, REMARKS, FILES, CONTRACT_NO, JOB_NO, WINDFARM_ID, FAN_NO, CONN_DATE, EXPIRE_DATE
+    </sql>
+
+</mapper>
