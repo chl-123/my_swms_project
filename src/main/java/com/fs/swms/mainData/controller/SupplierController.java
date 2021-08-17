@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fs.swms.common.annotation.log.AroundLog;
 import com.fs.swms.common.base.PageResult;
 import com.fs.swms.common.base.Result;
+import com.fs.swms.common.entity.MyFile;
 import com.fs.swms.mainData.dto.CreateSupplier;
 import com.fs.swms.mainData.dto.UpdateSupplier;
 import com.fs.swms.mainData.entity.Supplier;
@@ -13,7 +14,6 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 /**
  * <p>A
@@ -45,8 +45,8 @@ public class SupplierController {
     @PostMapping("/batch")
     @ApiOperation(value = "批量添加供应商")
     @AroundLog(name = "批量添加供应商")
-    public Result<?> batchCreate(@RequestParam MultipartFile file) throws Exception {
-        System.out.println(file.getOriginalFilename());
+    public Result<?> batchCreate(MyFile file) throws Exception {
+        System.out.println(file.getFile().getOriginalFilename());
         boolean result=supplierService.batchCreateSupplier(file);
         if (result) {
             return new Result<>().success("添加成功");
@@ -58,7 +58,9 @@ public class SupplierController {
     @GetMapping("/all")
     @ApiOperation(value = "查询供应商列表")
     @AroundLog(name = "查询供应商列表")
-    public PageResult<Supplier> all(Page<Supplier> page) {
+    public PageResult<Supplier> all(@RequestBody Page<Supplier> page) {
+        System.out.println(page.getSize());
+        System.out.println(page.getCurrent());
         Page<Supplier> pageSupplier = supplierService.selectSupplierAll(page);
         PageResult<Supplier> pageResult = new PageResult<Supplier>(pageSupplier.getTotal(), pageSupplier.getRecords());
         return pageResult;
@@ -67,7 +69,9 @@ public class SupplierController {
     @GetMapping("/list")
     @ApiOperation(value = "查询供应商列表")
     @AroundLog(name = "查询供应商列表")
-    public PageResult<Supplier> list(Supplier supplier, Page<Supplier> page) {
+    public PageResult<Supplier> list( Supplier supplier, Page<Supplier> page) {
+        System.out.println(page.getSize());
+        System.out.println(page.getCurrent());
         Page<Supplier> pageSupplier = supplierService.selectSupplierList(page, supplier);
         PageResult<Supplier> pageResult = new PageResult<Supplier>(pageSupplier.getTotal(), pageSupplier.getRecords());
         return pageResult;

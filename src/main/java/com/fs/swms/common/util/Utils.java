@@ -7,6 +7,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
 
 public class Utils {
     public static MultipartFile getMulFileByPath(String picPath) throws IOException {
@@ -15,6 +17,28 @@ public class Utils {
         MultipartFile multipartFile = new MockMultipartFile(file.getName(), file.getName(),
                 ContentType.APPLICATION_OCTET_STREAM.toString(), inputStream);
         return multipartFile;
+    }
+    public static String getKeyByValue(Map map, Integer value) {
+
+        String keys="";
+
+        Iterator it = map.entrySet().iterator();
+
+        while (it.hasNext()) {
+
+            Map.Entry entry = (Map.Entry) it.next();
+
+            Object obj = entry.getValue();
+
+            if (obj != null && obj.equals(value)) {
+
+                keys=(String) entry.getKey();
+
+            }
+        }
+
+        return keys;
+
     }
 
 }

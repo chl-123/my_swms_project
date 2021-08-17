@@ -2,10 +2,10 @@ package com.fs.swms.mainData.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.fs.swms.common.entity.MyFile;
 import com.fs.swms.mainData.dto.CreateSupplier;
 import com.fs.swms.mainData.dto.UpdateSupplier;
 import com.fs.swms.mainData.entity.Supplier;
-import org.springframework.web.multipart.MultipartFile;
 
 /**
  * <p>
@@ -55,7 +55,7 @@ public interface ISupplierService extends IService<Supplier> {
      * @param file
      * @return boolean
      */
-    boolean batchCreateSupplier(MultipartFile file) throws Exception;
+    boolean batchCreateSupplier(MyFile file) throws Exception;
 
 
 }

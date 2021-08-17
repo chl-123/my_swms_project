@@ -1,9 +1,9 @@
 package com.fs.swms.mainData.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.fs.swms.mainData.dto.CreateCustomer;
-import com.fs.swms.mainData.dto.UpdateCustomer;
+import com.fs.swms.mainData.dto.CustomerWindFarmInfo;
 import com.fs.swms.mainData.entity.Customer;
 import com.fs.swms.mainData.mapper.CustomerMapper;
 import com.fs.swms.mainData.service.ICustomerService;
@@ -25,34 +25,39 @@ public class CustomerServiceImpl extends ServiceImpl<CustomerMapper, Customer> i
     @Autowired
     CustomerMapper customerMapper;
 
-
-    public Page<Customer> selectCustomerList(Page<Customer> page, Customer Customer) {
-        return null;
+    public boolean createCustomer(Customer customer) {
+        boolean result = this.save(customer);
+        return result;
     }
 
-
-    public boolean createCustomer(CreateCustomer Customer) {
-        return false;
-    }
-
-
-    public boolean updateCustomer(UpdateCustomer Customer) {
-        return false;
-    }
-
-
-    public boolean deleteCustomer(String CustomerId) {
-        return false;
-    }
-
-
-    public boolean batchDeleteCustomer(List<String> CustomerIds) {
-        return false;
-    }
-
-
-    public Customer selectCustomers(String CustomerId) {
-        Customer customer = customerMapper.selectById(CustomerId);
+    @Override
+    public Customer insertCustomer(Customer customer) {
+        baseMapper.insert(customer);
         return customer;
     }
+
+
+
+    public boolean deleteCustomer(String customerId) {
+
+        boolean result = this.removeById(customerId);
+        return result;
+    }
+
+
+    @Override
+    public List<Customer> selectCustomers(String customerName) {
+        QueryWrapper<Customer> customerQueryWrapper=new QueryWrapper<>();
+        customerQueryWrapper.eq("CUSTOMER_NAME",customerName);
+        List<Customer> customerList=this.list(customerQueryWrapper);
+        return customerList;
+    }
+
+    @Override
+    public Page<CustomerWindFarmInfo> selectList(Page<CustomerWindFarmInfo> page, Customer customer) {
+        Page<CustomerWindFarmInfo> customerWindFarmInfoPage = customerMapper.selectCustomerByCustomerName(page, customer);
+        return customerWindFarmInfoPage;
+    }
+
+
 }

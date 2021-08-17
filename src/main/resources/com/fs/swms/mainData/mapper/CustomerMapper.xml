@@ -12,10 +12,42 @@
         <result column="OPERATOR" property="operator" />
         <result column="DEL_FLAG" property="delFlag" />
     </resultMap>
-
+    <resultMap id="MyBaseResultMap" type="com.fs.swms.mainData.dto.CustomerWindFarmInfo">
+        <id column="ID" property="id" />
+        <result column="CUSTOMER_NAME" property="customerName" />
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATOR" property="creator" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="OPERATOR" property="operator" />
+        <result column="DEL_FLAG" property="delFlag" />
+        <collection property="windFarmInfoList" column="id" ofType="com.fs.swms.mainData.dto.WindFarmInfo" select="selectById">
+            <result column="ID" property="id" />
+            <result column="CUSTOMER_ID" property="customerId" />
+            <result column="WINDFARM" property="windfarm" />
+            <result column="CREATE_TIME" property="createTime" />
+            <result column="CREATOR" property="creator" />
+            <result column="UPDATE_TIME" property="updateTime" />
+            <result column="OPERATOR" property="operator" />
+            <result column="DEL_FLAG" property="delFlag" />
+        </collection>
+    </resultMap>
+    <select id="selectById" resultType="com.fs.swms.mainData.dto.WindFarmInfo">
+        select * from T_BD_WINDFARM where DEL_FLAG = 0 and CUSTOMER_ID=#{id} order by WINDFARM DESC
+    </select>
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
         ID, CUSTOMER_NAME, CREATE_TIME, CREATOR, UPDATE_TIME, OPERATOR, DEL_FLAG
     </sql>
+    <select id="selectCustomerByCustomerName" resultMap="MyBaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM T_BD_CUSTOMER
+        WHERE DEL_FLAG = 0
+        <if test="customerWindFarmInfo.customerName != null and customerWindFarmInfo.customerName != ''">
+            AND CUSTOMER_NAME = #{customerWindFarmInfo.customerName}
+        </if>
+        ORDER BY CUSTOMER_NAME DESC
+
+    </select>
 
 </mapper>

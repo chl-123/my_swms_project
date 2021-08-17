@@ -2,8 +2,7 @@ package com.fs.swms.mainData.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.fs.swms.mainData.dto.CreateCustomer;
-import com.fs.swms.mainData.dto.UpdateCustomer;
+import com.fs.swms.mainData.dto.CustomerWindFarmInfo;
 import com.fs.swms.mainData.entity.Customer;
 
 import java.util.List;
@@ -17,27 +16,16 @@ import java.util.List;
  * @since 2021-08-13
  */
 public interface ICustomerService extends IService<Customer> {
-    /**
-     * 分页查询角色列表
-     * @param page
-     * @param Customer
-     * @return Page<Customer>
-     */
-    Page<Customer> selectCustomerList(Page<Customer> page, Customer Customer);
+
 
     /**
      * 创建角色
-     * @param Customer
+     * @param customer
      * @return boolean
      */
-    boolean createCustomer(CreateCustomer Customer);
+    boolean createCustomer(Customer customer);
 
-    /**
-     * 更新角色
-     * @param Customer
-     * @return boolean
-     */
-    boolean updateCustomer(UpdateCustomer Customer);
+    Customer insertCustomer(Customer customer);
 
     /**
      * 删除角色
@@ -46,12 +34,8 @@ public interface ICustomerService extends IService<Customer> {
      */
     boolean deleteCustomer(String CustomerId);
 
-    /**
-     * 批量删除角色
-     * @param CustomerIds
-     * @return boolean
-     */
-    boolean batchDeleteCustomer(List<String> CustomerIds);
 
-    Customer selectCustomers(String CustomerId);
+    List<Customer> selectCustomers(String customerName);
+
+    Page<CustomerWindFarmInfo> selectList(Page<CustomerWindFarmInfo> page, Customer customer);
 }

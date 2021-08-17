@@ -2,10 +2,10 @@ package com.fs.swms.mainData.dto;
 
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 @Data
-public class CreateCustomer implements Serializable {
+public class CustomerWindFarmInfo {
     private String id;
 
     private String customerName;
@@ -17,6 +17,6 @@ public class CreateCustomer implements Serializable {
     private Date updateTime;
 
     private String operator;
-
-
+    private String delFlag;
+    private List<WindFarmInfo> windFarmInfoList;
 }

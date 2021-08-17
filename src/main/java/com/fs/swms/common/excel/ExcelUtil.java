@@ -6,6 +6,7 @@ import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.metadata.BaseRowModel;
 import com.alibaba.excel.metadata.Sheet;
 import com.alibaba.excel.support.ExcelTypeEnum;
+import com.fs.swms.common.entity.MyFile;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
@@ -22,10 +23,10 @@ import java.util.List;
  * @Time 14:07
  */
 public class ExcelUtil {
-    public static <T extends BaseRowModel> List<T> read(MultipartFile file, Class<T> rowModel) throws Exception{
+    public static <T extends BaseRowModel> List<T> read(MyFile file, Class<T> rowModel) throws Exception{
 
         ExcelListener excelListener = new ExcelListener();
-        ExcelReader excelReader = getExcelReader(file,excelListener,true);
+        ExcelReader excelReader = getExcelReader(file.getFile(),excelListener,true);
         if(excelReader == null){
             return new ArrayList();
         }

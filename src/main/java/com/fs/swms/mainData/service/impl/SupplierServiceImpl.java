@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fs.swms.common.base.BusinessException;
+import com.fs.swms.common.entity.MyFile;
 import com.fs.swms.common.excel.ExcelUtil;
 import com.fs.swms.mainData.dto.CreateSupplier;
 import com.fs.swms.mainData.dto.ReadExcelSupplier;
@@ -15,7 +16,6 @@ import com.fs.swms.mainData.service.ISupplierService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
@@ -95,7 +95,7 @@ public class SupplierServiceImpl extends ServiceImpl<SupplierMapper, Supplier> i
     }
 
     @Override
-    public boolean batchCreateSupplier(MultipartFile file) throws Exception {
+    public boolean batchCreateSupplier(MyFile file) throws Exception {
 
         Map<String, Integer> map1 = new HashMap<>();
         Map<String, Integer> map2 = new HashMap<>();
