@@ -57,5 +57,10 @@ public interface ISupplierService extends IService<Supplier> {
      */
     boolean batchCreateSupplier(MyFile file) throws Exception;
 
-
+    /**
+     * 查询供应商
+     * @param supplierNo
+     * @return Supplier
+     */
+    Supplier selectBySupplierNo(String supplierNo);
 }

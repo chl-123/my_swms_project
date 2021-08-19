@@ -1,15 +1,17 @@
 package com.fs.swms.mainData.controller;
 
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.fs.swms.common.base.PageResult;
-import com.fs.swms.mainData.dto.CustomerWindFarmInfo;
+import com.fs.swms.common.base.Result;
 import com.fs.swms.mainData.entity.Customer;
 import com.fs.swms.mainData.service.ICustomerService;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * <p>
@@ -25,13 +27,12 @@ public class CustomerController {
     @Autowired
     private ICustomerService iCustomerService;
 
-    @GetMapping("/list")
-    public PageResult<CustomerWindFarmInfo> list(Customer customer, Page<CustomerWindFarmInfo> page) {
-        page.setCurrent(1);
-        page.setSize(2);
-        Page<CustomerWindFarmInfo> customerWindFarmInfoPage = iCustomerService.selectList(page, customer);
-        PageResult<CustomerWindFarmInfo> pageResult = new PageResult<CustomerWindFarmInfo>(customerWindFarmInfoPage.getTotal(), customerWindFarmInfoPage.getRecords());
-        return pageResult;
+
+    @PostMapping("/select")
+    @ApiOperation("根据客户名称查询客户信息")
+    public Result<List<Customer>> selectByCustomerName(@RequestParam(value = "customerName",required = false) String customerName){
+        List<Customer> customerList = iCustomerService.selectCustomerByCustomerName(customerName);
+        return new Result<List<Customer>>().success().put(customerList);
     }
 
 }

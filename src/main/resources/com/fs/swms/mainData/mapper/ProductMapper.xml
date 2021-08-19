@@ -5,36 +5,90 @@
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.fs.swms.mainData.entity.Product">
         <result column="CREATE_TIME" property="createTime" />
-        <result column="CREATOR" property="creator" />
+        <result column="CREATOR"      property="creator" />
         <result column="UPDATE_TIME" property="updateTime" />
-        <result column="OPERATOR" property="operator" />
-        <result column="DEL_FLAG" property="delFlag" />
-        <result column="ID" property="id" />
-        <result column="CUSTOMER_ID" property="customerId" />
-        <result column="FIGURE_NO" property="figureNo" />
-        <result column="BOX_NO" property="boxNo" />
-        <result column="POWER" property="power" />
-        <result column="SPEED_RATIO" property="speedRatio" />
+        <result column="OPERATOR"     property="operator" />
+        <result column="DEL_FLAG"     property="delFlag" />
+        <result column="ID"           property="id" />
+        <result column="CUSTOMER_ID"  property="customerId" />
+        <result column="FIGURE_NO"    property="figureNo" />
+        <result column="BOX_NO"        property="boxNo" />
+        <result column="POWER"         property="power" />
+        <result column="SPEED_RATIO"   property="speedRatio" />
         <result column="ASSEMBLY_DATE" property="assemblyDate" />
         <result column="MANUFACTURE_DATE" property="manufactureDate" />
-        <result column="REMARKS" property="remarks" />
-        <result column="FILES" property="files" />
-        <result column="CONTRACT_NO" property="contractNo" />
-        <result column="JOB_NO" property="jobNo" />
-        <result column="WINDFARM_ID" property="windfarmId" />
-        <result column="FAN_NO" property="fanNo" />
-        <result column="CONN_DATE" property="connDate" />
-        <result column="EXPIRE_DATE" property="expireDate" />
+        <result column="REMARKS"       property="remarks" />
+        <result column="FILES"         property="files" />
+        <result column="CONTRACT_NO"   property="contractNo" />
+        <result column="JOB_NO"        property="jobNo" />
+        <result column="WINDFARM_ID"   property="windfarmId" />
+        <result column="FAN_NO"        property="fanNo" />
+        <result column="CONN_DATE"      property="connDate" />
+        <result column="EXPIRE_DATE"   property="expireDate" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        CREATE_TIME,
-        CREATOR,
-        UPDATE_TIME,
-        OPERATOR,
-        DEL_FLAG,
-        ID, CUSTOMER_ID, FIGURE_NO, BOX_NO, POWER, SPEED_RATIO, ASSEMBLY_DATE, MANUFACTURE_DATE, REMARKS, FILES, CONTRACT_NO, JOB_NO, WINDFARM_ID, FAN_NO, CONN_DATE, EXPIRE_DATE
+        ID, CUSTOMER_ID, FIGURE_NO, BOX_NO, POWER, SPEED_RATIO, ASSEMBLY_DATE, MANUFACTURE_DATE, REMARKS, FILES, CONTRACT_NO, JOB_NO, WINDFARM_ID, FAN_NO, CONN_DATE, EXPIRE_DATE,CREATE_TIME,CREATOR,UPDATE_TIME,OPERATOR,DEL_FLAG
     </sql>
+    <select id="selectProductList" resultType="com.fs.swms.mainData.dto.ProductInfo">
+        SELECT
+            P.ID AS id,
+            P.CUSTOMER_ID   AS customerId,
+            C.CUSTOMER_NAME AS customerName,
+            P.FIGURE_NO AS figureNo,
+            P.BOX_NO    AS boxNo,
+            P.POWER       AS power,
+            P.SPEED_RATIO AS speedRatio,
+            P.ASSEMBLY_DATE    AS assemblyDate,
+            P.MANUFACTURE_DATE AS manufactureDate,
+            P.FILES       AS files,
+            P.CONTRACT_NO AS contractNo,
+            P.JOB_NO      AS jobNo,
+            P.WINDFARM_ID AS windfarmId,
+            W.WINDFARM    AS windfarm,
+            P.FAN_NO      AS fanNo,
+            P.CONN_DATE   AS connDate,
+            P.EXPIRE_DATE AS expireDate,
+            P.CREATE_TIME AS createTime,
+            P.CREATOR     AS creator,
+            P.UPDATE_TIME AS updateTime,
+            P.OPERATOR    AS operator
+            from T_BD_PRODUCT P
+            LEFT JOIN T_BD_CUSTOMER C ON P.CUSTOMER_ID=C.ID AND C.DEL_FLAG=0
+            LEFT JOIN T_BD_WINDFARM W ON P.WINDFARM_ID=W.ID AND W.DEL_FLAG=0
+        WHERE P.DEL_FLAG=0
+        <trim prefix="AND (" suffix=")" prefixOverrides="AND">
+            <if test="product.customerName != null and product.customerName != ''">
+                AND C.CUSTOMER_NAME like concat(concat('%', #{product.customerName}), '%')
+            </if>
+            <if test="product.figureNo != null and product.figureNo != ''">
+                AND P.FIGURE_NO like concat(concat('%', #{product.figureNo}), '%')
+            </if>
+            <if test="product.boxNo != null and product.boxNo != ''">
+                AND P.BOX_NO like concat(concat('%', #{product.userMobile}), '%')
+            </if>
 
+            <if test="product.assemblyDateStart != null and product.assemblyDateEnd != null ">
+                AND P.ASSEMBLY_DATE BETWEEN #{product.assemblyDateStart} and #{product.assemblyDateEnd}
+            </if>
+            <if test="product.manufactureDateStart != null and product.manufactureDateEnd != null ">
+                AND P.MANUFACTURE_DATE BETWEEN #{product.manufactureDateStart} and #{product.manufactureDateEnd}
+            </if>
+
+            <if test="product.windfarm != null and product.windfarm != ''">
+                AND W.WINDFARM like concat(concat('%', #{product.windfarm}), '%')
+            </if>
+            <if test="product.fanNo != null and product.fanNo != ''">
+                AND P.FAN_NO like concat(concat('%', #{product.fanNo}), '%')
+            </if>
+            <if test="product.connDateStart != null and product.connDateEnd != null ">
+                AND P.CONN_DATE BETWEEN #{product.connDateStart} and #{product.connDateEnd}
+            </if>
+            <if test="product.expireDateStart != null and product.expireDateEnd != null ">
+                AND P.EXPIRE_DATE BETWEEN #{product.expireDateStart} and #{product.expireDateEnd}
+            </if>
+        </trim>
+        ORDER BY P.UPDATE_TIME DESC
+    </select>
 </mapper>

@@ -14,7 +14,7 @@ import org.apache.ibatis.annotations.Param;
  */
 public interface WindfarmMapper extends BaseMapper<Windfarm> {
     /**
-     * 通过供应商代码删除该供应商
+     * 通过顾客ID删除顾客风场信息
      * @param customerId
      * @return boolean
      */

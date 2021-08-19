@@ -153,4 +153,12 @@ public class SupplierServiceImpl extends ServiceImpl<SupplierMapper, Supplier> i
 
     }
 
+    @Override
+    public Supplier selectBySupplierNo(String supplierNo) {
+        QueryWrapper<Supplier> supplierQueryWrapper =new QueryWrapper<>();
+        supplierQueryWrapper.eq("SUPPLIER_NO", supplierNo);
+        List<Supplier> list = this.list(supplierQueryWrapper);
+        return list.get(0);
+    }
+
 }

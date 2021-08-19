@@ -19,23 +19,48 @@ public interface ICustomerService extends IService<Customer> {
 
 
     /**
-     * 创建角色
+     * 创建客户信息
      * @param customer
      * @return boolean
      */
     boolean createCustomer(Customer customer);
-
+    /**
+     * 创建客户信息并且返回该客户
+     * @param customer
+     * @return Customer
+     */
     Customer insertCustomer(Customer customer);
 
     /**
-     * 删除角色
+     * 通过客户ID删除客户
      * @param CustomerId
      * @return boolean
      */
     boolean deleteCustomer(String CustomerId);
 
-
+    /**
+     * 根据客户名称模糊查询
+     * @param customerName
+     * @return List<Customer>
+     */
+    List<Customer> selectCustomersLike(String customerName);
+    /**
+     * 根据条件模糊查询客户风场信息
+     * @param customer
+     * @param page
+     * @return Page<CustomerWindFarmInfo>
+     */
+    Page<CustomerWindFarmInfo> selectPageList(Page<CustomerWindFarmInfo> page, Customer customer);
+    /**
+     * 根据客户名称查客户信息
+     * @param customerName
+     * @return List<Customer>
+     */
     List<Customer> selectCustomers(String customerName);
-
-    Page<CustomerWindFarmInfo> selectList(Page<CustomerWindFarmInfo> page, Customer customer);
+    /**
+     * 创建角色
+     * @param customer
+     * @return boolean
+     */
+    List<Customer> selectCustomerByCustomerName(String customerName);
 }

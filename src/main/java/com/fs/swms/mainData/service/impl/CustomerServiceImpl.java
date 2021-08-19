@@ -46,6 +46,20 @@ public class CustomerServiceImpl extends ServiceImpl<CustomerMapper, Customer> i
 
 
     @Override
+    public List<Customer> selectCustomersLike(String customerName) {
+        QueryWrapper<Customer> customerQueryWrapper=new QueryWrapper<>();
+        customerQueryWrapper.like("CUSTOMER_NAME",customerName);
+        List<Customer> customerList=this.list(customerQueryWrapper);
+        return customerList;
+    }
+
+    @Override
+    public Page<CustomerWindFarmInfo> selectPageList(Page<CustomerWindFarmInfo> page, Customer customer) {
+        Page<CustomerWindFarmInfo> customerWindFarmInfoPage = customerMapper.selectCustomerPageByCustomerName(page, customer);
+        return customerWindFarmInfoPage;
+    }
+
+    @Override
     public List<Customer> selectCustomers(String customerName) {
         QueryWrapper<Customer> customerQueryWrapper=new QueryWrapper<>();
         customerQueryWrapper.eq("CUSTOMER_NAME",customerName);
@@ -54,9 +68,9 @@ public class CustomerServiceImpl extends ServiceImpl<CustomerMapper, Customer> i
     }
 
     @Override
-    public Page<CustomerWindFarmInfo> selectList(Page<CustomerWindFarmInfo> page, Customer customer) {
-        Page<CustomerWindFarmInfo> customerWindFarmInfoPage = customerMapper.selectCustomerByCustomerName(page, customer);
-        return customerWindFarmInfoPage;
+    public List<Customer> selectCustomerByCustomerName(String customerName) {
+        List<Customer> customerList = customerMapper.selectCustomerListByCustomerName(customerName);
+        return customerList;
     }
 
 

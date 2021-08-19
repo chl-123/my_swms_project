@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fs.swms.mainData.mapper.ProblemTypeMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.fs.swms.mainData.entity.ProblemType">
+        <id column="ID" property="id" />
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATOR" property="creator" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="OPERATOR" property="operator" />
+        <result column="DEL_FLAG" property="delFlag" />
+        <result column="TYPE_NAME" property="typeName" />
+        <result column="PARENT_ID" property="parentId" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">    <!-- 改成和数据库字段的顺序一致 -->
+        ID, TYPE_NAME, PARENT_ID,CREATE_TIME, CREATOR,UPDATE_TIME,OPERATOR, DEL_FLAG
+    </sql>
+    <select id="selectProblemTypeList" resultType="com.fs.swms.mainData.entity.ProblemType" parameterType="com.fs.swms.mainData.entity.ProblemType">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM T_BD_PROBLEM_TYPE
+        WHERE DEL_FLAG = 0
+        <if test="problemType.typeName != null and problemType.typeName != ''">
+            AND TYPE_NAME = #{problemType.typeName}    <!-- 查询条件位置 -->
+        </if>
+        ORDER BY UPDATE_TIME DESC
+    </select>
+
+
+    <select id="selectProblemTypeAll" resultType="com.fs.swms.mainData.entity.ProblemType" parameterType="com.fs.swms.mainData.entity.ProblemType">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM T_BD_PROBLEM_TYPE
+        WHERE DEL_FLAG = 0
+        ORDER BY UPDATE_TIME DESC
+    </select>
+
+
+    <!-- 添加的测试sql -->
+    <select id="selectProblemTypeById" resultType="com.fs.swms.mainData.entity.ProblemType" parameterType="com.fs.swms.mainData.entity.ProblemType">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM T_BD_PROBLEM_TYPE
+        WHERE DEL_FLAG = 0
+        <if test="problemType.typeName != null and problemType.typeName != ''">
+            AND ID = #{problemType.id}    <!-- 查询条件位置 -->
+        </if>
+        ORDER BY UPDATE_TIME DESC
+    </select>
+
+
+</mapper>

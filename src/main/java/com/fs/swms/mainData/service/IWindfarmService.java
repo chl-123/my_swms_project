@@ -1,6 +1,5 @@
 package com.fs.swms.mainData.service;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.fs.swms.common.entity.MyFile;
 import com.fs.swms.mainData.dto.CreateWindfarm;
@@ -18,35 +17,23 @@ import com.fs.swms.mainData.entity.Windfarm;
  */
 public interface IWindfarmService extends IService<Windfarm> {
 
+
     /**
-     * 分页查询供应商列表(带条件)
-     * @param page
-     * @param windfarm
-     * @return Page<Role>
-     */
-    Page<Windfarm> selectWindfarmList(Page<Windfarm> page, Windfarm windfarm);
-    /**
-     * 分页查询供应商列表(全部)
-     * @param page
-     * @return Page<Role>
-     */
-    Page<Windfarm> selectWindfarmAll(Page<Windfarm> page);
-    /**
-     * 创建供应商
+     * 创建客户风场
      * @param windfarm
      * @return boolean
      */
     boolean createWindfarm(CreateWindfarm windfarm);
 
     /**
-     * 更新供应商
+     * 更新客户风场
      * @param windfarm
      * @return boolean
      */
     boolean updateWindfarm(UpdateCustomer windfarm);
 
     /**
-     * 删除供应商
+     * 删除客户风场
      * @param customerId
      * @param windfarmId
      * @return boolean
@@ -54,11 +41,16 @@ public interface IWindfarmService extends IService<Windfarm> {
     boolean deleteWindfarm(String customerId,String windfarmId);
 
     /**
-     * 批量添加供应商
+     * 批量添加客户风场
      * @param file
      * @return boolean
      */
     boolean batchCreateWindfarm(MyFile file) throws Exception;
 
+    /**
+     * 通过客户id查询客户风场
+     * @param customerId
+     * @return QueryWindfarm
+     */
     QueryWindfarm selectWindfarmByCustomerId(String customerId);
 }

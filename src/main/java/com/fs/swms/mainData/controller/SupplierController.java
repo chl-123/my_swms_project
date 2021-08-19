@@ -56,8 +56,8 @@ public class SupplierController {
         }
     }
     @GetMapping("/all")
-    @ApiOperation(value = "查询供应商列表")
-    @AroundLog(name = "查询供应商列表")
+    @ApiOperation(value = "查询全部供应商列表")
+    @AroundLog(name = "查询全部供应商列表")
     public PageResult<Supplier> all(@RequestBody Page<Supplier> page) {
         System.out.println(page.getSize());
         System.out.println(page.getCurrent());
@@ -78,7 +78,7 @@ public class SupplierController {
     }
     @PostMapping("/delete/{supplierNo}")
     @AroundLog(name = "删除供应商")
-    @ApiImplicitParam(paramType = "path", name = "supplierNo", value = "供应商ID", required = true, dataType = "String")
+    @ApiImplicitParam(paramType = "path", name = "supplierNo", value = "供应商代码", required = true, dataType = "String")
     public Result<?> delete(@PathVariable("supplierNo") String supplierNo) {
         if (null == supplierNo) {
             return new Result<>().error("供应商代码不能为空");
@@ -102,6 +102,13 @@ public class SupplierController {
         }else {
             return new Result<>().error("修改失败，请重试");
         }
+    }
+    @PostMapping("/select/{supplierNo}")
+    @AroundLog(name = "查询供应商")
+    @ApiImplicitParam(paramType = "path", name = "supplierNo", value = "供应商代码", required = true, dataType = "String")
+    public Result<Supplier> select(@PathVariable("supplierNo") String supplierNo) {
+        Supplier supplier = supplierService.selectBySupplierNo(supplierNo);
+        return new Result<Supplier>().success().put(supplier);
     }
 
 }

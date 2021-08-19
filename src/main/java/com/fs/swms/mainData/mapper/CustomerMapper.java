@@ -6,15 +6,29 @@ import com.fs.swms.mainData.dto.CustomerWindFarmInfo;
 import com.fs.swms.mainData.entity.Customer;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 
 /**
  * <p>
  *  Mapper 接口
  * </p>
  *
- * @author zhengweihe
+ * @author chl
  * @since 2021-08-13
  */
 public interface CustomerMapper extends BaseMapper<Customer> {
-    Page<CustomerWindFarmInfo> selectCustomerByCustomerName(Page<CustomerWindFarmInfo> page, @Param("customerWindFarmInfo") Customer customer);
+    /**
+     * 通过供应商代码删除该供应商
+     * @param customer
+     * @param page
+     * @return Page
+     */
+    Page<CustomerWindFarmInfo> selectCustomerPageByCustomerName(Page<CustomerWindFarmInfo> page, @Param("customerWindFarmInfo") Customer customer);
+    /**
+     * 通过供应商代码删除该供应商
+     * @param customerName
+     * @return List<Customer>
+     */
+    List<Customer> selectCustomerListByCustomerName(@Param("customerName")String customerName);
 }

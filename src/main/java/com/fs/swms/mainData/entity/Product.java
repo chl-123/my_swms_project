@@ -1,14 +1,15 @@
 package com.fs.swms.mainData.entity;
 
-import com.baomidou.mybatisplus.annotation.TableName;
-import java.util.Date;
-import com.fs.swms.common.entity.BaseEntity;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.fs.swms.common.entity.BaseEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+
+import java.util.Date;
 
 /**
  * <p>
@@ -64,7 +65,7 @@ public class Product extends BaseEntity {
     private String remarks;
 
     @ApiModelProperty(value = "附件名称")
-    @TableField("FILES")
+    @TableField(value = "FILES")
     private String files;
 
     @ApiModelProperty(value = "合同号")
