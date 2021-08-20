@@ -11,5 +11,6 @@ import com.fs.swms.security.entity.OrganizationUser;
  *
  */
 public interface IOrganizationUserService extends IService<OrganizationUser> {
+
 }
 

@@ -44,4 +44,24 @@
         connect by prior B.ID = B.PARENT_ID
         order by LEVEL, B.ORGANIZATION_LEVEL
     </select>
+    <select id="queryOrgBySelective" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"></include>
+        FROM T_SYS_ORGANIZATION
+        WHERE DEL_FLAG = 0
+        <if test="organization.organizationName != null and organization.organizationName != ''">
+            AND ORGANIZATION_NAME = #{organization.organizationName}
+        </if>
+        <if test="organization.organizationKey != null and organization.organizationKey != ''">
+            AND ORGANIZATION_KEY = #{organization.organizationKey}
+        </if>
+        ORDER BY UPDATE_TIME DESC
+    </select>
+    <select id="queryAllOrg" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"></include>
+        FROM T_SYS_ORGANIZATION
+        WHERE DEL_FLAG = 0
+        ORDER BY UPDATE_TIME DESC
+    </select>
 </mapper>

@@ -92,6 +92,9 @@ public class ProblemTypeServiceImpl extends ServiceImpl<ProblemTypeMapper, Probl
 
     @Override
     public boolean batchCreatProblemType(MyFile file) throws Exception {
+        if (file.getFile()==null) {
+            throw new BusinessException("文件不能为空，请选择文件上传");
+        }
         Map<String, Integer> map2 = new HashMap<>();
         //读取Excel表格获取数据
         List<ReadExcelProblemType> dataList = ExcelUtil.read(file, ReadExcelProblemType.class);

@@ -4,9 +4,11 @@ package com.fs.swms.mainData.controller;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fs.swms.common.annotation.log.AroundLog;
+import com.fs.swms.common.base.BusinessException;
 import com.fs.swms.common.base.PageResult;
 import com.fs.swms.common.base.Result;
 import com.fs.swms.common.entity.MyFile;
+import com.fs.swms.common.util.Utils;
 import com.fs.swms.mainData.dto.CreateProduct;
 import com.fs.swms.mainData.dto.ProductInfo;
 import com.fs.swms.mainData.dto.QueryProduct;
@@ -17,6 +19,8 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.text.ParseException;
 
 /**
@@ -37,7 +41,6 @@ public class ProductController {
     @ApiOperation(value = "质管科批量添加齿轮箱")
     @AroundLog(name = "质管科批量添加齿轮箱")
     public Result<?> batchCreateForQM(MyFile file) throws Exception {
-        System.out.println(file.getFile().getOriginalFilename());
         boolean result=iProductService.batchCreateForQM(file);
         if (result) {
             return new Result<>().success("添加成功");
@@ -50,7 +53,6 @@ public class ProductController {
     @ApiOperation(value = "营销科批量添加齿轮箱")
     @AroundLog(name = "营销科批量添加齿轮箱")
     public Result<?> batchCreateForMarketing(MyFile file) throws Exception {
-        System.out.println(file.getFile().getOriginalFilename());
         boolean result=iProductService.batchCreateForMarketing(file);
         if (result) {
             return new Result<>().success("添加成功");
@@ -99,6 +101,7 @@ public class ProductController {
     }
     @PostMapping("/delete/{id}")
     @AroundLog(name = "删除齿轮箱信息")
+    @ApiOperation(value = "删除齿轮箱信息")
     @ApiImplicitParam(paramType = "path", name = "id", value = "齿轮箱ID", required = true, dataType = "String")
     public Result<?> delete(@PathVariable("id") String id) {
 
@@ -120,6 +123,7 @@ public class ProductController {
     }
     @PostMapping("/select/marketing/{id}")
     @AroundLog(name = "营销科根据齿轮箱ID，查询齿轮箱信息")
+    @ApiOperation(value = "营销科根据齿轮箱ID，查询齿轮箱信息")
     @ApiImplicitParam(paramType = "path", name = "id", value = "齿轮箱ID", required = true, dataType = "String")
     public Result<ProductInfo> selectForMarketing(@PathVariable("id") String id) {
 
@@ -127,11 +131,20 @@ public class ProductController {
         return new Result<ProductInfo>().success().put(result);
     }
     @GetMapping("/list")
+    @ApiOperation(value = "根据条件查询齿轮箱信息")
     public PageResult<ProductInfo> list(QueryProduct product, Page<ProductInfo> page) throws ParseException {
-        page.setCurrent(1);
-        page.setSize(3);
         Page<ProductInfo> productInfoPage = iProductService.list(product,page);
         PageResult<ProductInfo> pageResult = new PageResult<ProductInfo>(productInfoPage.getTotal(), productInfoPage.getRecords());
         return pageResult;
+    }
+    @GetMapping("/download/template")
+    @ApiOperation(value = "文件下载")
+    @ApiImplicitParam(paramType = "query", name = "fileName", value = "文件名", required = true, dataType = "String")
+    public void download(@RequestParam("fileName") String fileName, HttpServletRequest request, HttpServletResponse response)  {
+        try{
+            Utils.downloadFile(fileName,request,response);
+        }catch (Exception e){
+            throw new BusinessException("文件下载失败");
+        }
     }
 }

@@ -2,9 +2,15 @@ package com.fs.swms.security.controller;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fs.swms.common.annotation.log.AroundLog;
+import com.fs.swms.common.base.BusinessException;
+import com.fs.swms.common.base.PageResult;
 import com.fs.swms.common.base.Result;
+import com.fs.swms.common.entity.MyFile;
+import com.fs.swms.common.util.Utils;
 import com.fs.swms.security.dto.CreateOrganization;
+import com.fs.swms.security.dto.QueryOrganization;
 import com.fs.swms.security.dto.UpdateOrganization;
 import com.fs.swms.security.entity.Organization;
 import com.fs.swms.security.service.IOrganizationService;
@@ -17,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.beans.BeanCopier;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
@@ -24,8 +32,8 @@ import java.util.List;
  * 组织表 前端控制器
  * </p>
  *
- * @author jeebase
- * @since 2018-05-19
+ * @author chl
+ * @since 2021-08-19
  */
 @RestController
 @RequestMapping("/organization")
@@ -54,7 +62,7 @@ public class OrganizationController {
      * 添加组织
      */
     @PostMapping("/create")
-    @RequiresRoles("SYSADMIN")
+//    @RequiresRoles("SYSADMIN")
     @ApiOperation(value = "添加组织机构")
     @AroundLog(name = "添加组织机构")
     public Result<Organization> create(@RequestBody CreateOrganization org) {
@@ -140,4 +148,43 @@ public class OrganizationController {
             return new Result<Boolean>().success().put(false);
         }
     }
+    @GetMapping("/download/template")
+    @ApiOperation(value = "文件下载")
+    @ApiImplicitParam(paramType = "query", name = "fileName", value = "文件名", required = true, dataType = "String")
+    public void download(@RequestParam("fileName") String fileName, HttpServletRequest request, HttpServletResponse response)  {
+        try{
+            Utils.downloadFile(fileName,request,response);
+        }catch (Exception e){
+            throw new BusinessException("文件下载失败");
+        }
+    }
+    @PostMapping("/batch")
+    @ApiOperation(value = "批量添加部门信息")
+    @AroundLog(name = "批量添加部门信息")
+    public Result<?> batchCreate(MyFile file) throws Exception {
+        boolean result=organizationService.batchCreateOrganization(file);
+        if (result) {
+            return new Result<>().success("添加成功");
+
+        }else {
+            return new Result<>().error("添加失败，请重试");
+        }
+    }
+    @GetMapping("/list")
+    @ApiOperation(value = "根据条件查询部门信息")
+    @AroundLog(name = "根据条件查询部门信息")
+    public PageResult<Organization> list(QueryOrganization organization, Page<Organization> page) {
+        Page<Organization> pageOrganization = organizationService.queryOrgPage(organization,page);
+        PageResult<Organization> pageResult = new PageResult<Organization>(pageOrganization.getTotal(), pageOrganization.getRecords());
+        return pageResult;
+    }
+    @GetMapping("/all")
+    @ApiOperation(value = "查询全部部门信息")
+    @AroundLog(name = "查询全部查询部门信息")
+    public PageResult<Organization> all(@RequestBody Page<Organization> page) {
+        Page<Organization> pageOrganization = organizationService.queryAllOrgPage(page);
+        PageResult<Organization> pageResult = new PageResult<Organization>(pageOrganization.getTotal(), pageOrganization.getRecords());
+        return pageResult;
+    }
+
 }

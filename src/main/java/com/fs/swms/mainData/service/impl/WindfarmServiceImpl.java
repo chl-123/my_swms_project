@@ -126,6 +126,9 @@ public class WindfarmServiceImpl extends ServiceImpl<WindfarmMapper, Windfarm> i
 
     @Override
     public boolean batchCreateWindfarm(MyFile file) throws Exception {
+        if (file.getFile()==null) {
+            throw new BusinessException("文件不能为空，请选择文件上传");
+        }
         Map<String, Integer> map1 = new HashMap<>();
 
         boolean result=false;

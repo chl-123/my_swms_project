@@ -1,20 +1,11 @@
 package com.fs.swms.security.dto;
 
-
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
-
-/**
- * <p>
- * 组织表
- * </p>
- *
- */
 @Data
-public class UpdateOrganization implements Serializable {
-
+public class QueryOrganization implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**

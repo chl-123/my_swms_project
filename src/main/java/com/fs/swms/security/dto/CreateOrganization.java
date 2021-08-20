@@ -1,12 +1,10 @@
 package com.fs.swms.security.dto;
 
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
 /**
  * <p>
@@ -49,35 +47,6 @@ public class CreateOrganization implements Serializable {
      * 组织级别（排序）
      */
     private Integer organizationLevel;
-
-    /**
-     * 省
-     */
-    @ApiModelProperty(value = "省")
-    private String province;
-
-    /**
-     * 市
-     */
-    @ApiModelProperty(value = "市")
-    private String city;
-
-    /**
-     * 区
-     */
-    @ApiModelProperty(value = "区")
-    private String area;
-
-    /**
-     * 地区数组
-     */
-    private List<String> areas;
-
-    /**
-     * 街道详细地址
-     */
-    @ApiModelProperty(value = "街道详细地址")
-    private String street;
 
     /**
      * 描述

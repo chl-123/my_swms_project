@@ -126,6 +126,9 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
 
     @Override
     public boolean batchCreateForQM(MyFile file) throws Exception {
+        if (file.getFile()==null) {
+            throw new BusinessException("文件不能为空，请选择文件上传");
+        }
         Map<String, Integer> map1 = new HashMap<>();
         List<ReadExcelProductQM> dataList = ExcelUtil.read(file, ReadExcelProductQM.class);
         for(ReadExcelProductQM info:dataList){
@@ -329,4 +332,5 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         Page<ProductInfo> productInfoPage = productMapper.selectProductList(page, product);
         return productInfoPage;
     }
+
 }

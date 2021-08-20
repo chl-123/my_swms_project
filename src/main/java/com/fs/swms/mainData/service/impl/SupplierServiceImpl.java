@@ -96,7 +96,9 @@ public class SupplierServiceImpl extends ServiceImpl<SupplierMapper, Supplier> i
 
     @Override
     public boolean batchCreateSupplier(MyFile file) throws Exception {
-
+        if (file.getFile()==null) {
+            throw new BusinessException("文件不能为空，请选择文件上传");
+        }
         Map<String, Integer> map1 = new HashMap<>();
         Map<String, Integer> map2 = new HashMap<>();
         //读取Excel表格获取数据

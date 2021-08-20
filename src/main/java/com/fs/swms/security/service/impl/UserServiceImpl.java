@@ -3,16 +3,14 @@ package com.fs.swms.security.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.service.impl.*;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fs.swms.common.base.BusinessException;
-import com.fs.swms.security.dto.CreateUser;
-import com.fs.swms.security.dto.QueryUser;
-import com.fs.swms.security.dto.UpdateUser;
-import com.fs.swms.security.dto.UserInfo;
+import com.fs.swms.common.entity.MyFile;
+import com.fs.swms.common.excel.ExcelUtil;
+import com.fs.swms.security.dto.*;
 import com.fs.swms.security.entity.*;
-import com.fs.swms.security.mapper.*;
+import com.fs.swms.security.mapper.UserMapper;
 import com.fs.swms.security.service.*;
-import net.oschina.j2cache.CacheChannel;
 import org.apache.commons.lang3.StringUtils;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +20,9 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cglib.beans.BeanCopier;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: UserServiceImpl
@@ -37,6 +37,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     UserMapper userMapper;
 
     @Autowired
+    private IOrganizationService organizationService;
+    @Autowired
     private IUserRoleService userRoleService;
 
     @Autowired
@@ -44,6 +46,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Autowired
     private IDataPermissionService dataPermissionService;
+
+    @Autowired
+    private IRoleService roleService;
 
     @Value("${system.defaultPwd}")
     private String defaultPwd;
@@ -327,5 +332,106 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         QueryWrapper<User> wrapper = new QueryWrapper<>();
         wrapper.eq("id", userEntity.getId());
         return this.update(userEntity, wrapper);
+    }
+
+    @Override
+    public boolean batchCreate(MyFile file) throws Exception {
+        if (file.getFile()==null) {
+            throw new BusinessException("文件不能为空，请选择文件上传");
+        }
+        Map<String, Integer> map1 = new HashMap<>();
+        Map<String, Integer> map2 = new HashMap<>();
+        //读取Excel表格获取数据
+        List<ReadExcelUser> dataList = ExcelUtil.read(file, ReadExcelUser.class);
+        for(ReadExcelUser info:dataList){
+            if (info.getOrganizationName()==null) {
+                throw new BusinessException("部门名称不能为空");
+            }
+            if (info.getUserAccount()==null) {
+                throw new BusinessException("用户账号不能为空");
+            }
+            if (info.getUserName()==null) {
+                throw new BusinessException("用户姓名不能为空");
+            }
+            if (info.getRoleName()==null) {
+                throw new BusinessException("角色不能为空");
+            }
+            if (info.getUserStatus()==null) {
+                throw new BusinessException("用户状态不能为空");
+            }
+            //1:map.containsKey()   检测key是否重复
+            if (map1.containsKey(info.getUserAccount())) {
+                map1.clear();
+                throw new BusinessException("文件中用户账号重复");
+            } else {
+                map1.put(info.getUserAccount(), 1);
+            }
+        }
+        for(ReadExcelUser info:dataList){
+            //查询从数据库中中查数据
+            QueryWrapper<User> ew=new QueryWrapper<>();
+            ew.eq("user_account",info.getUserAccount());
+            List<User> userList=this.list(ew);
+            //判断是否重复
+            if(!CollectionUtils.isEmpty(userList)){
+                throw new BusinessException("系统中用户账号"+info.getUserAccount()+"重复");
+            }
+            QueryWrapper<Organization> orgQueryWrapper=new QueryWrapper<>();
+            orgQueryWrapper.eq("organization_name",info.getOrganizationName());
+            List<Organization> organizationList=organizationService.list(orgQueryWrapper);
+            //判断是否存在
+            if(CollectionUtils.isEmpty(organizationList)){
+                throw new BusinessException("系统中部门"+info.getOrganizationName()+"不存在");
+            }
+            QueryWrapper<Role> roleQueryWrapper=new QueryWrapper<>();
+            roleQueryWrapper.eq("role_name",info.getRoleName());
+            List<Role> roleList=roleService.list(roleQueryWrapper);
+            //判断是否存在
+            if(CollectionUtils.isEmpty(roleList)){
+                throw new BusinessException("系统中角色"+info.getRoleName()+"不存在");
+            }
+        }
+        String pwd = defaultPwd;
+        boolean result=false;
+        for(ReadExcelUser info:dataList){
+            User user=new User();
+
+            user.setUserAccount(info.getUserAccount());
+            user.setUserStatus("2");
+            //密码加密
+            String cryptPwd = BCrypt.hashpw(user.getUserAccount() + pwd, BCrypt.gensalt());
+            user.setUserPassword(cryptPwd);
+            User userInfo = this.insertUser(user);
+            if (userInfo!=null) {
+                //保存用户和组织机构的关系
+                QueryWrapper<Organization>  organizationQueryWrapper=new QueryWrapper<>();
+                organizationQueryWrapper.eq("organization_name",info.getOrganizationName());
+                List<Organization> list = organizationService.list(organizationQueryWrapper);
+
+                OrganizationUser orgUser = new OrganizationUser();
+                orgUser.setUserId(userInfo.getId());
+                orgUser.setOrganizationId(list.get(0).getId());
+                result = organizationUserService.save(orgUser);
+
+                //默认增加用户所在机构数据权限值，但是否有操作权限还是会根据资源权限判断
+                DataPermission dataPermission = new DataPermission();
+                dataPermission.setUserId(userInfo.getId());
+                dataPermission.setOrganizationId(list.get(0).getId());
+                result=dataPermissionService.save(dataPermission);
+
+                QueryWrapper<Role> roleQueryWrapper=new QueryWrapper<>();
+                roleQueryWrapper.eq("role_name",info.getRoleName());
+                List<Role> roleList=roleService.list(roleQueryWrapper);
+                UserRole userRole=new UserRole();
+                userRole.setRoleId(roleList.get(0).getId());
+                userRole.setUserId(userInfo.getId());
+                result=userRoleService.save(userRole);
+            }
+        }
+        return result;
+    }
+    public User insertUser(User user) {
+        baseMapper.insert(user);
+        return user;
     }
 }

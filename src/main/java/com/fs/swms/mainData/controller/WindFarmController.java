@@ -3,9 +3,11 @@ package com.fs.swms.mainData.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fs.swms.common.annotation.log.AroundLog;
+import com.fs.swms.common.base.BusinessException;
 import com.fs.swms.common.base.PageResult;
 import com.fs.swms.common.base.Result;
 import com.fs.swms.common.entity.MyFile;
+import com.fs.swms.common.util.Utils;
 import com.fs.swms.mainData.dto.CreateWindfarm;
 import com.fs.swms.mainData.dto.CustomerWindFarmInfo;
 import com.fs.swms.mainData.dto.QueryWindfarm;
@@ -18,6 +20,9 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>
@@ -41,7 +46,6 @@ public class WindFarmController {
     @ApiOperation(value = "批量添加客户风场")
     @AroundLog(name = "批量添加客户风场")
     public Result<?> batchCreate(MyFile file) throws Exception {
-        System.out.println(file.getFile().getOriginalFilename());
         boolean result=iWindfarmService.batchCreateWindfarm(file);
         if (result) {
             return new Result<>().success("添加成功");
@@ -54,7 +58,6 @@ public class WindFarmController {
     @ApiOperation(value = "添加客户风场")
     @AroundLog(name = "添加客户风场")
     public Result<?> create(@RequestBody CreateWindfarm windfarm)  {
-        System.out.println(windfarm.getWindFarmList());
         boolean result=iWindfarmService.createWindfarm(windfarm);
         if (result) {
             return new Result<>().success("添加成功");
@@ -107,6 +110,16 @@ public class WindFarmController {
         Page<CustomerWindFarmInfo> customerWindFarmInfoPage = iCustomerService.selectPageList(page, customer);
         PageResult<CustomerWindFarmInfo> pageResult = new PageResult<CustomerWindFarmInfo>(customerWindFarmInfoPage.getTotal(), customerWindFarmInfoPage.getRecords());
         return pageResult;
+    }
+    @GetMapping("/download/template")
+    @ApiOperation(value = "文件下载")
+    @ApiImplicitParam(paramType = "query", name = "fileName", value = "文件名", required = true, dataType = "String")
+    public void download(@RequestParam("fileName") String fileName, HttpServletRequest request, HttpServletResponse response)  {
+        try{
+            Utils.downloadFile(fileName,request,response);
+        }catch (Exception e){
+            throw new BusinessException("文件下载失败");
+        }
     }
 
 }

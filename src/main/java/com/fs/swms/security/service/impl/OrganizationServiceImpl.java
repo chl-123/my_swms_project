@@ -2,21 +2,24 @@ package com.fs.swms.security.service.impl;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fs.swms.common.base.BusinessException;
+import com.fs.swms.common.entity.MyFile;
+import com.fs.swms.common.excel.ExcelUtil;
+import com.fs.swms.security.dto.QueryOrganization;
+import com.fs.swms.security.dto.ReadExcelOrganization;
 import com.fs.swms.security.entity.Organization;
 import com.fs.swms.security.mapper.OrganizationMapper;
 import com.fs.swms.security.service.IOrganizationService;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author jeebase
@@ -139,4 +142,80 @@ public class OrganizationServiceImpl extends ServiceImpl<OrganizationMapper, Org
         }
         return result;
     }
+
+    @Override
+    public boolean batchCreateOrganization(MyFile file) throws Exception {
+        if (file.getFile()==null) {
+            throw new BusinessException("文件不能为空，请选择文件上传");
+        }
+        Map<String, Integer> map1 = new HashMap<>();
+        Map<String, Integer> map2 = new HashMap<>();
+        //读取Excel表格获取数据
+        List<ReadExcelOrganization> dataList = ExcelUtil.read(file, ReadExcelOrganization.class);
+        for(ReadExcelOrganization info:dataList){
+            if (info.getOrganizationName()==null) {
+                throw new BusinessException("部门名称不能为空");
+            }
+            if (info.getOrganizationKey()==null) {
+                throw new BusinessException("部门标识不能为空");
+            }
+            if (info.getOrganizationLevel()==null) {
+                throw new BusinessException("部门排序不能为空");
+            }
+            //1:map.containsKey()   检测key是否重复
+            if (map1.containsKey(info.getOrganizationName())) {
+                map1.clear();
+                throw new BusinessException("部门名称重复");
+            } else {
+                map1.put(info.getOrganizationName(), 1);
+            }
+            if (map2.containsKey(info.getOrganizationKey())) {
+                map2.clear();
+                throw new BusinessException("部门标识重复");
+            } else {
+                map2.put(info.getOrganizationKey(), 1);
+            }
+        }
+        for(ReadExcelOrganization info:dataList){
+            //查询从数据库中中查数据
+            QueryWrapper<Organization> ew=new QueryWrapper<>();
+            ew.eq("organization_name",info.getOrganizationName()).or().eq("organization_key",info.getOrganizationKey());
+            List<Organization> organizationList=this.list(ew);
+            //判断是否重复
+            if(!CollectionUtils.isEmpty(organizationList)){
+                for(Organization organization:organizationList){
+                    if (organization.getOrganizationName().equals(info.getOrganizationName())) {
+                        throw new BusinessException("部门名称"+info.getOrganizationName()+"已存在");
+                    }
+                    if(organization.getOrganizationKey().equals(info.getOrganizationKey())){
+                        throw new BusinessException("部门标识"+info.getOrganizationKey()+"已存在");
+                    }
+                }
+            }
+        }
+        Collection<Organization> organizationEntityList=new ArrayList<>();
+        for (ReadExcelOrganization info:dataList){
+            Organization organization=new Organization();
+            BeanUtils.copyProperties(info,organization);
+            organizationEntityList.add(organization);
+        }
+        //执行保存
+        boolean result =this.saveBatch(organizationEntityList);
+        return result;
+    }
+
+    @Override
+    public Page<Organization> queryOrgPage(QueryOrganization organization, Page<Organization> page) {
+        Organization orgEntity=new Organization();
+        BeanUtils.copyProperties(organization,orgEntity);
+        Page<Organization> organizationPage = organizationMapper.queryOrgBySelective(page, orgEntity);
+        return organizationPage;
+    }
+
+    @Override
+    public Page<Organization> queryAllOrgPage(Page<Organization> page) {
+        Page<Organization> organizationPage = organizationMapper.queryAllOrg(page);
+        return organizationPage;
+    }
+
 }

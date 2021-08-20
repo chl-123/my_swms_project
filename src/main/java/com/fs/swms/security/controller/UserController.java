@@ -7,6 +7,7 @@ import com.fs.swms.common.annotation.auth.CurrentUser;
 import com.fs.swms.common.annotation.log.AroundLog;
 import com.fs.swms.common.base.PageResult;
 import com.fs.swms.common.base.Result;
+import com.fs.swms.common.entity.MyFile;
 import com.fs.swms.security.dto.*;
 import com.fs.swms.security.entity.User;
 import com.fs.swms.security.service.IDataPermissionService;
@@ -293,6 +294,19 @@ public class UserController {
             return new Result<Boolean>().success().put(true);
         } else {
             return new Result<Boolean>().success().put(false);
+        }
+    }
+
+    @PostMapping("/batch")
+    @ApiOperation(value = "批量用户信息")
+    @AroundLog(name = "批量用户信息")
+    public Result<?> batchCreate(MyFile file) throws Exception {
+        boolean result=userService.batchCreate(file);
+        if (result) {
+            return new Result<>().success("添加成功");
+
+        }else {
+            return new Result<>().error("添加失败，请重试");
         }
     }
 }

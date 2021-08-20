@@ -2,6 +2,7 @@ package com.fs.swms.security.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.fs.swms.common.entity.MyFile;
 import com.fs.swms.security.dto.CreateUser;
 import com.fs.swms.security.dto.QueryUser;
 import com.fs.swms.security.dto.UpdateUser;
@@ -70,4 +71,16 @@ public interface IUserService extends IService<User> {
      * @return boolean
      */
     boolean updateUserStatus(String userId,String status);
+    /**
+     * 批量添加用户
+     * @param file
+     * @return boolean
+     */
+    boolean batchCreate(MyFile file) throws Exception;
+    /**
+     * 添加并返回该用户信息
+     * @param user
+     * @return User
+     */
+    User insertUser(User user);
 }

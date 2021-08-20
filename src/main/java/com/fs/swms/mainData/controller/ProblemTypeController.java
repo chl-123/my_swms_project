@@ -3,9 +3,11 @@ package com.fs.swms.mainData.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fs.swms.common.annotation.log.AroundLog;
+import com.fs.swms.common.base.BusinessException;
 import com.fs.swms.common.base.PageResult;
 import com.fs.swms.common.base.Result;
 import com.fs.swms.common.entity.MyFile;
+import com.fs.swms.common.util.Utils;
 import com.fs.swms.mainData.dto.CreateProblemType;
 import com.fs.swms.mainData.dto.UpdateProblemType;
 import com.fs.swms.mainData.entity.ProblemType;
@@ -14,6 +16,9 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 
 /**
@@ -35,7 +40,6 @@ public class ProblemTypeController {
     @ApiOperation(value = "添加问题")
     @AroundLog(name = "添加问题")
     public Result<?> create(@RequestBody CreateProblemType problemType){
-        System.out.println(problemType.toString());
         boolean result=problemTypeService.createProblemType(problemType);
         if (result) {
             return new Result<>().success("添加成功");
@@ -97,13 +101,22 @@ public class ProblemTypeController {
     @ApiOperation(value = "更新问题信息")
     @AroundLog(name = "更新问题信息")
     public Result<?> update(@RequestBody UpdateProblemType problemType){
-        System.out.println(problemType.toString());
         boolean result=problemTypeService.updateProblemType(problemType);
         if (result) {
             return new Result<>().success("修改成功");
 
         }else {
             return new Result<>().error("修改失败，请重试");
+        }
+    }
+    @GetMapping("/download/template")
+    @ApiOperation(value = "文件下载")
+    @ApiImplicitParam(paramType = "query", name = "fileName", value = "文件名", required = true, dataType = "String")
+    public void download(@RequestParam("fileName") String fileName, HttpServletRequest request, HttpServletResponse response)  {
+        try{
+            Utils.downloadFile(fileName,request,response);
+        }catch (Exception e){
+            throw new BusinessException("文件下载失败");
         }
     }
 

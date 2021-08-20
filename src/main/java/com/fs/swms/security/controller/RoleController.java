@@ -44,6 +44,8 @@ public class RoleController {
     /*@RequiresRoles("SYSADMIN")*/
     @ApiOperation(value = "查询角色列表")
     public PageResult<Role> list(Role role, Page<Role> page) {
+        System.out.println(role.getParentId());
+        System.out.println(page.getCurrent());
         Page<Role> pageRole = roleService.selectRoleList(page, role);
         PageResult<Role> pageResult = new PageResult<Role>(pageRole.getTotal(), pageRole.getRecords());
         return pageResult;

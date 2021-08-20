@@ -1,26 +1,21 @@
 package com.fs.swms.security.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fs.swms.common.annotation.auth.CurrentUser;
 import com.fs.swms.common.annotation.log.AroundLog;
-import com.fs.swms.common.base.PageResult;
 import com.fs.swms.common.base.Result;
-import com.fs.swms.security.dto.*;
+import com.fs.swms.security.dto.CreateResource;
+import com.fs.swms.security.dto.UpdateResource;
 import com.fs.swms.security.entity.Resource;
-import com.fs.swms.security.entity.Role;
-import com.fs.swms.security.entity.RoleResource;
 import com.fs.swms.security.entity.User;
 import com.fs.swms.security.service.IResourceService;
-import com.fs.swms.security.service.IRoleResourceService;
-import com.fs.swms.security.service.IRoleService;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiOperation;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
 import org.apache.shiro.authz.annotation.RequiresRoles;
-import org.springframework.beans.factory.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.beans.BeanCopier;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -31,8 +26,8 @@ import java.util.List;
  * 权限表 前端控制器
  * </p>
  *
- * @author jeebase
- * @since 2018-05-19
+ * @author chl
+ * @since 2021-08-19
  */
 @RestController
 @RequestMapping("/resource")

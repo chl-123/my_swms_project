@@ -59,8 +59,8 @@ public interface ICustomerService extends IService<Customer> {
     List<Customer> selectCustomers(String customerName);
     /**
      * 创建角色
-     * @param customer
-     * @return boolean
+     * @param customerName
+     * @return List<Customer>
      */
     List<Customer> selectCustomerByCustomerName(String customerName);
 }

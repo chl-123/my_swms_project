@@ -8,6 +8,7 @@ import com.google.common.io.Files;
 import org.apache.http.entity.ContentType;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,9 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.text.ParseException;
@@ -84,10 +83,14 @@ public class Utils {
         String parentPath = getParentPath();
         File dest = new File(parentPath, fileName);
         Boolean isDelete = Boolean.FALSE;
-        isDelete = FileSystemUtils.deleteRecursively(dest);
+        if (dest.exists()) {
+
+            isDelete = FileSystemUtils.deleteRecursively(dest);
+        }
+
         return isDelete;
     }
-    public void downFile(String openStyle, String name, HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public static void downFile(String openStyle, String name, HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         //打开方式(inline,attachment)
         openStyle=openStyle==null?"attachment":openStyle;
@@ -96,9 +99,34 @@ public class Utils {
         ServletOutputStream os=response.getOutputStream();
         response.setHeader("Content-disposition",openStyle+";filename"+ URLEncoder.encode(name,"UTF-8"));
         IOUtils.copy(fis,os);
-
         IOUtils.closeQuietly(fis);
         IOUtils.closeQuietly(os);
+
+    }
+    public static void downloadFile(String fileName,HttpServletRequest request, HttpServletResponse response){
+        try {
+            ClassPathResource classPathResource = new ClassPathResource("upload/"+fileName);
+            File file = classPathResource.getFile();
+            InputStream inputStream = classPathResource.getInputStream();
+            //输出文件
+            InputStream fis = new BufferedInputStream(inputStream);
+            byte[] buffer = new byte[fis.available()];
+            fis.read(buffer);
+            fis.close();
+            response.reset();
+
+            //获取文件的名字再浏览器下载页面
+            String name = file.getName();
+            response.addHeader("Content-Disposition", "attachment;filename=" + new String(name.getBytes(), "iso-8859-1"));
+            response.addHeader("Content-Length", "" + file.length());
+            OutputStream out = new BufferedOutputStream(response.getOutputStream());
+            response.setContentType("application/octet-stream");
+            out.write(buffer);
+            out.flush();
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
