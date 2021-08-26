@@ -20,7 +20,9 @@ import com.fs.swms.mainData.service.IWindfarmService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -39,13 +41,13 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     private ICustomerService iCustomerService;
     @Autowired
     private IWindfarmService iWindfarmService;
-    public boolean createProduct(CreateProduct product, MyFile file){
-        if (file.getFile()!=null) {
-            String fileName = Utils.uploadFile(file);
-            product.setFiles(fileName);
-        }
+    public boolean createProduct(CreateProduct product, List<MultipartFile> files){
+        String dataPath="Product/";
         QueryWrapper<Product> ew=new QueryWrapper<>();
         //查找相应的条件
+        if (product.getFigureNo()==null||product.getCustomerId()==null||product.getBoxNo()==null) {
+            throw new BusinessException("数据不能为空");
+        }
         ew.eq("CUSTOMER_ID",product.getCustomerId())
                 .and(e->e.eq("FIGURE_NO",product.getFigureNo())
                         .and(f->f.eq("BOX_NO",product.getBoxNo())));
@@ -53,20 +55,36 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         if(!CollectionUtils.isEmpty(productList)){//判断是否重复
             throw new BusinessException("当前客户、产品图号与齿轮箱的组合已存在");
         }
-
         //拷贝数据
         Product productEntity=new Product();
         BeanUtils.copyProperties(product,productEntity);
+        String fileNames="";
+        if (files.size()!=0&&files!=null) {
+            for (MultipartFile file :files){
+                if (!file.getOriginalFilename().equals("")&&file!=null&&file.getOriginalFilename()!=null) {
+                    MyFile myFile=new MyFile();
+                    myFile.setFile(file);
+                    String fileName = Utils.uploadFile(dataPath,myFile);
+                    fileNames=dataPath+fileName+";"+fileNames;
+                }
+            }
+            productEntity.setFiles(fileNames);
+        }
+
         //执行保存
         boolean result = this.save(productEntity);
         return result;
     }
 
     @Override
-    public boolean updateProductForQM(UpdateProduct product,MyFile file) {
+    public boolean updateProductForQM(UpdateProduct product,List<MultipartFile> files) {
+        String dataPath="Product/";
         boolean result=false;
         QueryWrapper<Product> ew=new QueryWrapper<>();
         //查找相应的条件
+        if (product.getId()==null||product.getFigureNo()==null||product.getCustomerId()==null||product.getBoxNo()==null) {
+            throw new BusinessException("数据不能为空");
+        }
         ew.ne("ID",product.getId()).and(h->h.eq("CUSTOMER_ID",product.getCustomerId())
                 .and(e->e.eq("FIGURE_NO",product.getFigureNo())
                         .and(f->f.eq("BOX_NO",product.getBoxNo()))));
@@ -79,29 +97,82 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         UpdateWrapper<Product> queryWrapper=new UpdateWrapper();
         queryWrapper.eq("ID",product.getId());
         List<Product> list = this.list(queryWrapper);
-        String files=list.get(0).getFiles();
-        if (file.getFile()!=null) {
-            if(files!=file.getFile().getOriginalFilename()&&files!=null) {
-                result = Utils.delFile(files);
-                String fileName = Utils.uploadFile(file);
-                productEntity.setFiles(fileName);
-            }else {
-                String fileName = Utils.uploadFile(file);
-                productEntity.setFiles(fileName);
-            }
-        }else {
-            queryWrapper.set("FILES","");
 
+        String fileList=list.get(0).getFiles();
+
+
+        String productFiles = product.getBaseFiles();
+
+        Map<String,Integer> fileMap=new HashMap<>();
+        if (productFiles!=null&&!productFiles.equals("")) {
+            String[] productFilesList=productFiles.split(";");
+            for (int i = 0; i < productFilesList.length; i++) {
+                fileMap.put(productFilesList[i],1);
+            }
         }
+
+        if (fileList!=null) {
+            String[] fileNameList = fileList.split(";");
+            String fileNames="";
+            if (files.size()!=0&&files!=null) {
+                if (fileNameList!= null&&fileNameList.length!=0) {
+                    if (fileMap.size()==0) {
+                        for (String fileName:fileNameList){//加判断
+                            result = Utils.delFile(fileName);
+                        }
+                    }else {
+                        for (String fileName:fileNameList){//加判断
+                            if (!fileMap.containsKey(fileName)) {
+                                result = Utils.delFile(fileName);
+                            }else {
+                                fileNames=fileName+";"+fileNames;
+                            }
+                        }
+
+                    }
+                }
+                String fileName =Utils.uploadFiles(files, dataPath);
+                fileNames=fileName+fileNames;
+                productEntity.setFiles(fileNames);
+            }else {
+                if (fileMap.size()==0) {
+                    for (String fileName:fileNameList){//加判断
+                        result = Utils.delFile(fileName);
+                    }
+                    queryWrapper.set("FILES","");
+                }else {
+                    for (String fileName:fileNameList){//加判断
+                        if (!fileMap.containsKey(fileName)) {
+                            result = Utils.delFile(fileName);
+                        }else {
+                            fileNames=fileName+";"+fileNames;
+                        }
+                    }
+                    productEntity.setFiles(fileNames);
+                }
+            }
+        }else{
+            if (files.size()!=0&&files!=null){
+                String fileNames="";
+                String fileName =Utils.uploadFiles(files, dataPath);
+                fileNames=fileName+fileNames;
+                productEntity.setFiles(fileNames);
+            }else {
+                queryWrapper.set("FILES","");
+            }
+        }
+
         result = this.update(productEntity, queryWrapper);
 
         return result;
     }
-
     @Override
     public boolean updateProductForMarketing(UpdateProduct product) {
         QueryWrapper<Product> ew=new QueryWrapper<>();
         //查找相应的条件
+        if (product.getId()==null||product.getJobNo()==null||product.getContractNo()==null||product.getBoxNo()==null) {
+            throw new BusinessException("数据不能为空");
+        }
         ew.ne("ID",product.getId()).and(w->w.eq("JOB_NO",product.getJobNo())
                 .and(e->e.eq("CONTRACT_NO",product.getContractNo())
                 .and(f->f.eq("BOX_NO",product.getBoxNo()))));
@@ -111,7 +182,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         }
         Product productEntity=new Product();
         BeanUtils.copyProperties(product,productEntity);
-        QueryWrapper<Product> queryWrapper=new QueryWrapper<>();
+        UpdateWrapper<Product> queryWrapper=new UpdateWrapper();
         queryWrapper.eq("ID",product.getId());
         boolean result = this.update(productEntity, queryWrapper);
 
@@ -305,32 +376,95 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     @Override
     public ProductInfo selectProductByIdForQuality(String id) {
         Product product = this.getById(id);
+        if(product==null){
+            throw new BusinessException("查询不到信息");
+        }
         QueryWrapper<Customer> customerQueryWrapper=new QueryWrapper<>();
         customerQueryWrapper.eq("ID",product.getCustomerId());
         List<Customer> customerList = iCustomerService.list(customerQueryWrapper);
+        if(CollectionUtils.isEmpty(customerList)){
+            throw new BusinessException("查询不到该客户");
+        }
         ProductInfo productInfo=new ProductInfo();
         BeanUtils.copyProperties(product,productInfo);
+
         productInfo.setCustomerName(customerList.get(0).getCustomerName());
+        if(productInfo==null){
+            throw new BusinessException("查询不到信息");
+        }
         return productInfo;
     }
 
     @Override
-    public ProductInfo selectProductByIdForMarketing(String id) {
+    public ProductInfo selectProductByIdForMarketing(String id) throws ParseException {
         Product product = this.getById(id);
+        if(product==null){
+            throw new BusinessException("查询不到信息");
+        }
         QueryWrapper<Windfarm> queryWrapper=new QueryWrapper<>();
         queryWrapper.eq("CUSTOMER_ID",product.getCustomerId());
         List<Windfarm> windfarmList = iWindfarmService.list(queryWrapper);
+        if(CollectionUtils.isEmpty(windfarmList)){
+            throw new BusinessException("该客户对应的风场信息为空");
+        }
+        QueryWrapper<Customer> queryCustomer=new QueryWrapper<>();
+        queryCustomer.eq("ID",product.getCustomerId());
+        List<Customer> list = iCustomerService.list(queryCustomer);
+        if(CollectionUtils.isEmpty(list)){
+            throw new BusinessException("查询不到该客户");
+        }
+        ProductInfo productInfo=new ProductInfo();
+        BeanUtils.copyProperties(product,productInfo);
+
+        productInfo.setWindfarm(windfarmList.get(0).getWindfarm());
+        productInfo.setWindfarmId(windfarmList.get(0).getId());
+        productInfo.setCustomerName(list.get(0).getCustomerName());
+        return productInfo;
+    }
+
+    @Override
+    public Page<ProductInfo> selectAll(Page<ProductInfo> page) {
+        Page<ProductInfo> productInfoPage = productMapper.selectProductList(page,new QueryProduct());
+        return productInfoPage;
+    }
+
+    @Override
+    public Page<ProductInfo> selectList(QueryProduct product, Page<ProductInfo> page) {
+
+        Page<ProductInfo> productInfoPage = productMapper.selectProductList(page, product);
+        return productInfoPage;
+    }
+
+    public ProductInfo selectProductByBoxNo(String boxNo)  {
+
+        if (boxNo == null||boxNo.equals("")) {
+            throw new BusinessException("齿轮箱号不能为空");
+        }
+        QueryWrapper<Product> productQueryWrapper=new QueryWrapper<>();
+        productQueryWrapper.eq("BOX_NO",boxNo);
+        List<Product> productList = this.list(productQueryWrapper);
+        if(CollectionUtils.isEmpty(productList)){
+            throw new BusinessException("系统中无此齿轮箱编号!");
+        }
+        Product product=productList.get(0);
+        QueryWrapper<Windfarm> queryWrapper=new QueryWrapper<>();
+        queryWrapper.eq("ID",product.getWindfarmId());
+        List<Windfarm> windfarmList = iWindfarmService.list(queryWrapper);
+        if(CollectionUtils.isEmpty(windfarmList)){
+            throw new BusinessException("该产品对应的风场信息为空");
+        }
+        QueryWrapper<Customer> queryCustomer=new QueryWrapper<>();
+        queryCustomer.eq("ID",product.getCustomerId());
+        List<Customer> list = iCustomerService.list(queryCustomer);
+        if(CollectionUtils.isEmpty(list)){
+            throw new BusinessException("查询不到该客户");
+        }
         ProductInfo productInfo=new ProductInfo();
         BeanUtils.copyProperties(product,productInfo);
         productInfo.setWindfarm(windfarmList.get(0).getWindfarm());
         productInfo.setWindfarmId(windfarmList.get(0).getId());
+        productInfo.setCustomerName(list.get(0).getCustomerName());
         return productInfo;
-    }
-
-    @Override
-    public Page<ProductInfo> list(QueryProduct product, Page<ProductInfo> page) {
-        Page<ProductInfo> productInfoPage = productMapper.selectProductList(page, product);
-        return productInfoPage;
     }
 
 }

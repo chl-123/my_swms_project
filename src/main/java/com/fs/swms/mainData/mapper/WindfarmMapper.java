@@ -1,7 +1,7 @@
 package com.fs.swms.mainData.mapper;
 
-import com.fs.swms.mainData.entity.Windfarm;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.fs.swms.mainData.entity.Windfarm;
 import org.apache.ibatis.annotations.Param;
 
 /**

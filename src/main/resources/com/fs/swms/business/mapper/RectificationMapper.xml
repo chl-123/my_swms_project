@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fs.swms.business.mapper.RectificationMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.fs.swms.business.entity.Rectification">
+        <id column="ID" property="id" />
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATOR" property="creator" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="OPERATOR" property="operator" />
+        <result column="DEL_FLAG" property="delFlag" />
+        <result column="SERVICE_RED_ID" property="serviceRedId" />
+        <result column="DEPT_NO" property="deptNo" />
+        <result column="ESECUTOR" property="esecutor" />
+        <result column="ANALYSIS_CONTENT" property="analysisContent" />
+        <result column="ANALYSIS_FILENAMES" property="analysisFilenames" />
+        <result column="RECTIFY_CONTENT" property="rectifyContent" />
+        <result column="RECTIFY_FILENAMES" property="rectifyFilenames" />
+        <result column="APPROVAL_STATUS" property="approvalStatus" />
+        <result column="APPROVAL_COMMENTS" property="approvalComments" />
+        <result column="APPROVAER" property="approvaer" />
+        <result column="APPROVAL_DATE" property="approvalDate" />
+        <result column="CHILD_SETP" property="childSetp" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        ID, SERVICE_RED_ID, DEPT_NO, ESECUTOR, ANALYSIS_CONTENT, ANALYSIS_FILENAMES, RECTIFY_CONTENT, RECTIFY_FILENAMES, APPROVAL_STATUS, APPROVAL_COMMENTS, APPROVAER, APPROVAL_DATE, CHILD_SETP,CREATE_TIME,CREATOR,UPDATE_TIME,OPERATOR,DEL_FLAG,
+    </sql>
+
+    <select id="selectRectificationList" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM T_MM_RECTIFICATION
+        WHERE DEL_FLAG = 0
+        <if test="rectification.serviceRedId != null and rectification.serviceRedId != ''">
+            AND SERVICE_RED_ID = #{rectification.serviceRedId}
+        </if>
+        ORDER BY UPDATE_TIME DESC
+    </select>
+
+    <select id="selectRectificationAll" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM T_MM_RECTIFICATION
+        WHERE DEL_FLAG = 0
+        ORDER BY UPDATE_TIME DESC
+    </select>
+
+    <update id="deleteById">
+        UPDATE T_MM_RECTIFICATION SET del_flag='1' WHERE del_flag='0' AND Id=#{id}
+    </update>
+
+
+
+
+</mapper>

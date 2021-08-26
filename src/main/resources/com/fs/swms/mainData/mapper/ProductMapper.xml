@@ -57,7 +57,7 @@
             from T_BD_PRODUCT P
             LEFT JOIN T_BD_CUSTOMER C ON P.CUSTOMER_ID=C.ID AND C.DEL_FLAG=0
             LEFT JOIN T_BD_WINDFARM W ON P.WINDFARM_ID=W.ID AND W.DEL_FLAG=0
-        WHERE P.DEL_FLAG=0
+        WHERE P.DEL_FLAG=0 AND W.DEL_FLAG=0 AND C.DEL_FLAG=0
         <trim prefix="AND (" suffix=")" prefixOverrides="AND">
             <if test="product.customerName != null and product.customerName != ''">
                 AND C.CUSTOMER_NAME like concat(concat('%', #{product.customerName}), '%')
@@ -66,7 +66,7 @@
                 AND P.FIGURE_NO like concat(concat('%', #{product.figureNo}), '%')
             </if>
             <if test="product.boxNo != null and product.boxNo != ''">
-                AND P.BOX_NO like concat(concat('%', #{product.userMobile}), '%')
+                AND P.BOX_NO like concat(concat('%', #{product.boxNo}), '%')
             </if>
 
             <if test="product.assemblyDateStart != null and product.assemblyDateEnd != null ">

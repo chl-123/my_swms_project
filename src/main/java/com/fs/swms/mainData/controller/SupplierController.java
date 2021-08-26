@@ -61,7 +61,7 @@ public class SupplierController {
     @GetMapping("/all")
     @ApiOperation(value = "查询全部供应商列表")
     @AroundLog(name = "查询全部供应商列表")
-    public PageResult<Supplier> all(@RequestBody Page<Supplier> page) {
+    public PageResult<Supplier> all(Page<Supplier> page) {
         Page<Supplier> pageSupplier = supplierService.selectSupplierAll(page);
         PageResult<Supplier> pageResult = new PageResult<Supplier>(pageSupplier.getTotal(), pageSupplier.getRecords());
         return pageResult;
@@ -101,7 +101,7 @@ public class SupplierController {
             return new Result<>().error("修改失败，请重试");
         }
     }
-    @PostMapping("/select/{supplierNo}")
+    @GetMapping("/select/{supplierNo}")
     @AroundLog(name = "查询供应商")
     @ApiImplicitParam(paramType = "path", name = "supplierNo", value = "供应商代码", required = true, dataType = "String")
     public Result<Supplier> select(@PathVariable("supplierNo") String supplierNo) {

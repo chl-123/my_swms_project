@@ -25,15 +25,8 @@
         FROM T_BD_SUPPLIER
         WHERE DEL_FLAG = 0
         <if test="supplier.supplierName != null and supplier.supplierName != ''">
-            AND SUPPLIER_NAME = #{supplier.supplierName}
+            AND SUPPLIER_NAME like concat(concat('%', #{supplier.supplierName}), '%')
         </if>
-        ORDER BY ID DESC
-    </select>
-    <select id="selectSupplierAll" resultType="com.fs.swms.mainData.entity.Supplier" parameterType="com.fs.swms.mainData.entity.Supplier">
-        SELECT
-        <include refid="Base_Column_List"/>
-        FROM T_BD_SUPPLIER
-        WHERE DEL_FLAG = 0
         ORDER BY ID DESC
     </select>
 

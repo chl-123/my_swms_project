@@ -1,7 +1,6 @@
 package com.fs.swms.mainData.controller;
 
 
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fs.swms.common.annotation.log.AroundLog;
 import com.fs.swms.common.base.BusinessException;
@@ -18,10 +17,13 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.text.ParseException;
+import java.util.List;
 
 /**
  * <p>
@@ -64,9 +66,10 @@ public class ProductController {
     @PostMapping("/create")
     @ApiOperation(value = "质管添加齿轮箱")
     @AroundLog(name = "质管添加齿轮箱")
-    public Result<?> create(@RequestParam("product") String product,  MyFile file)  {
-        CreateProduct createProduct = JSON.parseObject(product, CreateProduct.class);
-        boolean result=iProductService.createProduct(createProduct,file);
+    public Result<?> create(CreateProduct product, HttpServletRequest request)  {
+        List<MultipartFile> files = ((MultipartHttpServletRequest) request).getFiles("appendFiles");
+
+        boolean result=iProductService.createProduct(product,files);
         if (result) {
             return new Result<>().success("添加成功");
 
@@ -77,9 +80,9 @@ public class ProductController {
     @PostMapping("/update/quality")
     @ApiOperation(value = "质管更新齿轮箱")
     @AroundLog(name = "质管更新齿轮箱")
-    public Result<?> updateForQM(@RequestParam("product") String product,  MyFile file)  {
-        UpdateProduct updateProduct = JSON.parseObject(product, UpdateProduct.class);
-        boolean result=iProductService.updateProductForQM(updateProduct,file);
+    public Result<?> updateForQM(UpdateProduct product, HttpServletRequest request)  {
+        List<MultipartFile> files = ((MultipartHttpServletRequest) request).getFiles("appendFiles");
+        boolean result=iProductService.updateProductForQM(product,files);
         if (result) {
             return new Result<>().success("修改成功");
 
@@ -113,7 +116,7 @@ public class ProductController {
             return new Result<>().error("删除失败，请重试");
         }
     }
-    @PostMapping("/select/quality/{id}")
+    @GetMapping("/select/quality/{id}")
     @AroundLog(name = "根据齿轮箱ID，查询齿轮箱信息")
     @ApiImplicitParam(paramType = "path", name = "id", value = "齿轮箱ID", required = true, dataType = "String")
     public Result<ProductInfo> selectForQuality(@PathVariable("id") String id) {
@@ -121,11 +124,11 @@ public class ProductController {
         ProductInfo result=iProductService.selectProductByIdForQuality(id);
         return new Result<ProductInfo>().success().put(result);
     }
-    @PostMapping("/select/marketing/{id}")
+    @GetMapping("/select/marketing/{id}")
     @AroundLog(name = "营销科根据齿轮箱ID，查询齿轮箱信息")
     @ApiOperation(value = "营销科根据齿轮箱ID，查询齿轮箱信息")
     @ApiImplicitParam(paramType = "path", name = "id", value = "齿轮箱ID", required = true, dataType = "String")
-    public Result<ProductInfo> selectForMarketing(@PathVariable("id") String id) {
+    public Result<ProductInfo> selectForMarketing(@PathVariable("id") String id) throws ParseException {
 
         ProductInfo result=iProductService.selectProductByIdForMarketing(id);
         return new Result<ProductInfo>().success().put(result);
@@ -133,7 +136,16 @@ public class ProductController {
     @GetMapping("/list")
     @ApiOperation(value = "根据条件查询齿轮箱信息")
     public PageResult<ProductInfo> list(QueryProduct product, Page<ProductInfo> page) throws ParseException {
-        Page<ProductInfo> productInfoPage = iProductService.list(product,page);
+        Page<ProductInfo> productInfoPage = iProductService.selectList(product,page);
+        PageResult<ProductInfo> pageResult = new PageResult<ProductInfo>(productInfoPage.getTotal(), productInfoPage.getRecords());
+        return pageResult;
+    }
+
+
+    @GetMapping("/all")
+    @ApiOperation(value = "查询全部齿轮箱信息")
+    public PageResult<ProductInfo> all(Page<ProductInfo> page) throws ParseException {
+        Page<ProductInfo> productInfoPage = iProductService.selectAll(page);
         PageResult<ProductInfo> pageResult = new PageResult<ProductInfo>(productInfoPage.getTotal(), productInfoPage.getRecords());
         return pageResult;
     }
@@ -146,5 +158,13 @@ public class ProductController {
         }catch (Exception e){
             throw new BusinessException("文件下载失败");
         }
+    }
+    @GetMapping("/select/boxNo")
+    @AroundLog(name = "根据齿轮箱编号，查询齿轮箱信息")
+    @ApiImplicitParam(paramType = "query", name = "boxNo", value = "齿轮箱编号", required = true, dataType = "String")
+    public Result<ProductInfo> selectByBoxNo(@RequestParam("boxNo") String boxNo) {
+
+        ProductInfo result=iProductService.selectProductByBoxNo(boxNo);
+        return new Result<ProductInfo>().success().put(result);
     }
 }

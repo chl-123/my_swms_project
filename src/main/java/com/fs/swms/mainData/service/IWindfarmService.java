@@ -38,7 +38,7 @@ public interface IWindfarmService extends IService<Windfarm> {
      * @param windfarmId
      * @return boolean
      */
-    boolean deleteWindfarm(String customerId,String windfarmId);
+    boolean deleteWindfarm(String customerId);
 
     /**
      * 批量添加客户风场
@@ -53,4 +53,6 @@ public interface IWindfarmService extends IService<Windfarm> {
      * @return QueryWindfarm
      */
     QueryWindfarm selectWindfarmByCustomerId(String customerId);
+
+
 }

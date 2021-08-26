@@ -94,7 +94,7 @@ public class CodeGenerator {
         strategy.setTableFillList(list);
         strategy.setRestControllerStyle(true);//开启驼峰命名
         // 如果 setInclude() 不加参数, 会自定查找所有表
-        strategy.setInclude(new String[] { "T_BD_PRODUCT" }); // 需要生成的表
+        strategy.setInclude(new String[] { "T_MM_SERVICE_REGISTER" }); // 需要生成的表
         //strategy.setInclude(scanner("表名"));
 //        strategy.setInclude(scanner("表名，多个英文逗号分割").split(","));
         // strategy.setExclude(new String[]{"test"}); // 排除生成的表
@@ -121,7 +121,7 @@ public class CodeGenerator {
         // 包配置
         PackageConfig pc = new PackageConfig();
         pc.setParent("com");
-        pc.setModuleName("fs.swms.mainData");
+        pc.setModuleName("fs.swms.business");
         pc.setController("controller");
         pc.setEntity("entity");
         pc.setMapper("mapper");
@@ -156,7 +156,7 @@ public class CodeGenerator {
             @Override
             public String outputFile(TableInfo tableInfo) {
                 // 自定义输出文件名 ， 如果你 Entity 设置了前后缀、此处注意 xml 的名称会跟着发生变化！！
-                return dirPath + "/my_swms_project/src/main/resources/com/fs/swms/mainData/mapper/"
+                return dirPath + "/my_swms_project/src/main/resources/com/fs/swms/business/mapper/"
                         //+ tableInfo.getEntityName() + "Mapper.xml";
                         + tableInfo.getEntityName() + "Mapper" + StringPool.DOT_XML;
             }

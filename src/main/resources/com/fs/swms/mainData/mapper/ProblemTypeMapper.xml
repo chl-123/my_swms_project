@@ -18,23 +18,14 @@
     <sql id="Base_Column_List">    <!-- 改成和数据库字段的顺序一致 -->
         ID, TYPE_NAME, PARENT_ID,CREATE_TIME, CREATOR,UPDATE_TIME,OPERATOR, DEL_FLAG
     </sql>
-    <select id="selectProblemTypeList" resultType="com.fs.swms.mainData.entity.ProblemType" parameterType="com.fs.swms.mainData.entity.ProblemType">
+    <select id="selectProblemTypeList" resultType="com.fs.swms.mainData.entity.ProblemType" >
         SELECT
         <include refid="Base_Column_List"/>
         FROM T_BD_PROBLEM_TYPE
         WHERE DEL_FLAG = 0
         <if test="problemType.typeName != null and problemType.typeName != ''">
-            AND TYPE_NAME = #{problemType.typeName}    <!-- 查询条件位置 -->
+            AND TYPE_NAME like concat(concat('%', #{problemType.typeName}), '%')
         </if>
-        ORDER BY UPDATE_TIME DESC
-    </select>
-
-
-    <select id="selectProblemTypeAll" resultType="com.fs.swms.mainData.entity.ProblemType" parameterType="com.fs.swms.mainData.entity.ProblemType">
-        SELECT
-        <include refid="Base_Column_List"/>
-        FROM T_BD_PROBLEM_TYPE
-        WHERE DEL_FLAG = 0
         ORDER BY UPDATE_TIME DESC
     </select>
 
@@ -46,10 +37,22 @@
         FROM T_BD_PROBLEM_TYPE
         WHERE DEL_FLAG = 0
         <if test="problemType.typeName != null and problemType.typeName != ''">
-            AND ID = #{problemType.id}    <!-- 查询条件位置 -->
+            AND ID = #{problemType.id}
         </if>
         ORDER BY UPDATE_TIME DESC
     </select>
+
+    <select id="queryProblemTypeTree" parameterType="String" resultType="com.fs.swms.mainData.dto.ProblemTypeTree">
+        SELECT ID,
+               TYPE_NAME,
+               PARENT_ID
+        FROM T_BD_PROBLEM_TYPE
+        WHERE DEL_FLAG = 0
+        start with PARENT_ID = #{parentId}
+        connect by prior ID = PARENT_ID
+        order by TYPE_NAME
+    </select>
+
 
 
 </mapper>

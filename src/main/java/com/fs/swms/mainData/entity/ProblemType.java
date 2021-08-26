@@ -35,13 +35,10 @@ public class ProblemType extends BaseEntity {
     @TableField("TYPE_NAME")
     private String typeName;
 
-    @ApiModelProperty(value = "上一级问题类型名称")
+    @ApiModelProperty(value = "上一级问题类型Id")
     @TableField("PARENT_ID")
     private String parentId;
 
-   /* @ApiModelProperty(value = "上一级ID，无上一级则为0")
-    @TableField("PARENT_ID")
-    private String parentId;*/
 
 
 }

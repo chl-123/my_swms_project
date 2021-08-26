@@ -2,8 +2,11 @@ package com.fs.swms.mainData.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fs.swms.mainData.dto.ProblemTypeTree;
 import com.fs.swms.mainData.entity.ProblemType;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * <p>
@@ -23,11 +26,10 @@ public interface ProblemTypeMapper extends BaseMapper<ProblemType> {
     Page<ProblemType> selectProblemTypeList(Page<ProblemType> page, @Param("problemType") ProblemType problemType);
 
     /**
-     * 查询全部问题类型列表
-     * @param page
-     * @return Page<ProblemType>
+     * 查询问题树
+     * @param parentId
+     * @return
      */
-    Page<ProblemType> selectProblemTypeAll(Page<ProblemType> page);
-
+    List<ProblemTypeTree> queryProblemTypeTree(String parentId);
 
 }

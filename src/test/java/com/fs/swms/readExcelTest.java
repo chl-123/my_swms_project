@@ -3,7 +3,11 @@ package com.fs.swms;
 public class readExcelTest {
     public static void main(String[] args)  {
 
-
+        String d="用户.xlsx;";
+        String[] split = d.split(";");
+        for (int i = 0; i < split.length; i++) {
+            System.out.println(split[i]);
+        }
 //        List<ReadExcelWindfarm> dataList=new ArrayList<>();
 //        ReadExcelWindfarm data1=new ReadExcelWindfarm("aaa","111");
 //        ReadExcelWindfarm data2=new ReadExcelWindfarm("aaa","222");

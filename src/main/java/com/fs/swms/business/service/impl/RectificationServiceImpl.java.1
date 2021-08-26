@@ -1,0 +1,192 @@
+package com.fs.swms.business.service.impl;
+
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.fs.swms.business.dto.CreateRectification;
+import com.fs.swms.business.entity.Rectification;
+import com.fs.swms.business.mapper.RectificationMapper;
+import com.fs.swms.business.service.IRectificationService;
+import com.fs.swms.common.base.BusinessException;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+/**
+ * <p>
+ *  服务实现类
+ * </p>
+ *
+ * @author chl
+ * @since 2021-08-19
+ */
+@Service
+public class RectificationServiceImpl extends ServiceImpl<RectificationMapper, Rectification> implements IRectificationService {
+    @Autowired
+    RectificationMapper rectificationMapper;
+
+    @Override
+    public boolean createRectification(CreateRectification rectification) {
+        QueryWrapper<Rectification> ew = new QueryWrapper<>();
+        //查找相应的条件
+        ew.eq("SERVICE_RED_ID", rectification.getServiceRedId());
+                /*.or().eq("ISFREE", rectification.getIsFree())
+                .or().eq("SEGMENTS", rectification.getSegments());*/
+
+        List<Rectification> rectificationList = this.list(ew);
+        if (!CollectionUtils.isEmpty(rectificationList)) {
+            //判断是否重复
+            for (Rectification rectification1 : rectificationList) {
+                /*if (problemType1.getTypeName().equals(problemType.getTypeName())) {
+                    throw new BusinessException("供应商代码已存在");
+                }*/
+                if (rectification1.getServiceRedId().equals(rectification.getServiceRedId())) {
+                    throw new BusinessException("服务登记表ID已存在");
+                }
+            }
+        }
+       /* //判断隶属板块是否合法
+        if (!(rectification.getSegments().equals("2") || rectification.getSegments().equals("1"))) {
+            throw new BusinessException("隶属板块号无效");
+        } else if (!(rectification.getIsFree().equals("0") || rectification.getIsFree().equals("1"))) {
+            throw new BusinessException("是否无偿服务号无效");//判断无偿服务是否合法
+        }*/
+        //拷贝数据
+        Rectification rectificationEntity = new Rectification();
+        BeanUtils.copyProperties(rectification, rectificationEntity);
+        //执行保存
+        boolean result = this.save(rectificationEntity);
+        return result;
+    }
+
+
+    @Override
+    public Page<Rectification> selectRectificationList(Page<Rectification> page, Rectification rectification) {
+        Page<Rectification> rectificationPage = rectificationMapper.selectRectificationList(page, rectification);
+        return rectificationPage;
+    }
+
+    @Override
+    public Page<Rectification> selectRectificationAll(Page<Rectification> page) {
+        Page<Rectification> rectificationPage = rectificationMapper.selectRectificationAll(page);
+        return rectificationPage;
+    }
+
+
+    /*@Override
+    public boolean deleteRectification(String id) {
+        boolean result = this.removeById(id);
+        return result;
+    }
+
+    @Override
+    public boolean updateRectification(UpdateRectification rectification) {
+        //查询从数据库中中查数据
+        QueryWrapper<Rectification> ew = new QueryWrapper<>();
+
+        ew.ne("ID", rectification.getProductId())
+                .and(e -> e.eq("PRODUCT_ID", rectification.getProductId()));
+
+        ew.ne("ID", rectification.getIsFree())
+                .and(e -> e.eq("ISFREE", rectification.getIsFree()));
+
+        ew.ne("ID", rectification.getSegments())
+                .and(e -> e.eq("SEGMENTS", rectification.getSegments()));
+
+        List<Rectification> rectificationList = this.list(ew);
+        if (!CollectionUtils.isEmpty(rectificationList)) {//判断是否重复
+            throw new BusinessException("齿轮箱ID已存在");
+        }
+        //拷贝数据
+        Rectification rectificationEntity = new Rectification();
+        BeanUtils.copyProperties(rectification, rectificationEntity);
+        //执行保存
+        QueryWrapper<rectification> wrapper = new QueryWrapper<>();
+        wrapper.eq("ID", rectification.getId());
+        boolean result = this.update(rectificationEntity, wrapper);
+        return result;
+    }
+
+
+    @Override
+    public boolean batchCreatRectification(MyFile file) throws Exception {
+        Map<String, Integer> map1 = new HashMap<>();
+        Map<String, Integer> map2 = new HashMap<>();
+        //读取Excel表格获取数据
+        List<ReadExcelRectification> dataList = ExcelUtil.read(file, ReadExcelRectification.class);
+        for (ReadExcelRectification rectification : dataList) {
+
+            if (rectification.getTypeName() == null) {
+                throw new BusinessException("问题类型名称不能为空");
+            }
+            if (map2.containsKey(rectification.getTypeName())) {
+                map2.clear();
+                throw new BusinessException("问题类型名称重复");
+            }else {
+                map1.put(rectification.getTypeName(), 1);
+            }
+
+
+            if (rectification.getParentId() == null) {
+                throw new BusinessException("上一级问题类型不能为空");
+            }
+            //1:map.containsKey()   检测key是否重复
+            if (map1.containsKey(rectification.getParentId())) {
+                map1.clear();
+                throw new BusinessException("上一级问题类型重复");
+            }else {
+                map2.put(rectification.getParentId(), 1);
+            }
+        }
+
+
+        for (ReadExcelRectification rectification : dataList) {
+            //查询从数据库中中查数据
+            QueryWrapper<Rectification> ew = new QueryWrapper<>();
+            ew.eq("PARENT_ID", rectification.getParentId()).or().eq("TYPE_NAME",rectification.getTypeName());
+            List<Rectification> rectificationList = this.list(ew);
+            //判断是否重复
+            if (!CollectionUtils.isEmpty(rectificationList)) {
+                for (Rectification rectification1 : rectificationList) {
+                    *//*if (problemType1.get().equals(supplier.getSupplierNo())) {
+                throw new BusinessException("供应商代码" + supplier.getSupplierNo() + "已存在");
+            }*//*
+                    if (rectification1.getTypeName().equals(rectification.getTypeName())) {
+                        throw new BusinessException("问题名称" + rectification.getTypeName() + "已存在");
+                    }
+                }
+            }
+        }
+        //拷贝数据
+        Collection<Rectification> rectificationEntityList = new ArrayList<>();
+        for (ReadExcelRectification rectification : dataList) {
+        Rectification rectificationEntity = new Rectification();
+            BeanUtils.copyProperties(rectification, rectificationEntity);
+        rectificationEntityList.add(rectificationEntity);
+        }
+        //执行保存
+        QueryWrapper<Rectification> ew = new QueryWrapper<>();
+        boolean result = this.saveBatch(rectificationEntityList);
+        return result;
+    }
+
+    @Override
+    public Rectification selectRectificationById(String rectificationId) {
+
+        Rectification rectification = rectificationMapper.selectById(rectificationId);
+
+        return rectification;
+    }
+
+
+    @Override
+    public Rectification selectRectificationByProductId(String productId) {
+
+        Rectification rectification = rectificationMapper.selectByProductId(productId);
+
+        return rectification;
+    }*/
+}

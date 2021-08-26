@@ -1,6 +1,7 @@
 package com.fs.swms.common.entity;
 
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableLogic;
@@ -14,12 +15,14 @@ import java.util.Date;
 public class BaseEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    @JSONField(format = "yyyy-MM-dd")
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     private Date createTime;
 
     @TableField(value = "creator", fill = FieldFill.INSERT)
     private String creator;
 
+    @JSONField(format = "yyyy-MM-dd")
     @TableField(value = "update_time", fill = FieldFill.UPDATE)
     private Date updateTime;
 

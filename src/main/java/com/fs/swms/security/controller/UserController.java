@@ -309,4 +309,14 @@ public class UserController {
             return new Result<>().error("添加失败，请重试");
         }
     }
+
+
+    @GetMapping("/getUser/{organizationId}")
+    @ApiOperation(value = "根据部门ID查询部门信息")
+    @AroundLog(name = "根据部门ID查询部门信息")
+    public Result<User> getUser(@PathVariable("organizationId") String organizationId)  {
+        User user=userService.getUserByOrganizationId(organizationId);
+        return new Result<User>().success().put(user);
+    }
+
 }

@@ -29,5 +29,5 @@ public interface SupplierMapper extends BaseMapper<Supplier> {
     boolean deleteBySupplierNo(@Param("supplierNo") String supplierNo);
 
 
-    Page<Supplier> selectSupplierAll(Page<Supplier> page);
+
 }

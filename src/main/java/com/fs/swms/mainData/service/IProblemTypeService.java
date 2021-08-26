@@ -4,8 +4,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.fs.swms.common.entity.MyFile;
 import com.fs.swms.mainData.dto.CreateProblemType;
+import com.fs.swms.mainData.dto.ProblemTypeTree;
 import com.fs.swms.mainData.dto.UpdateProblemType;
 import com.fs.swms.mainData.entity.ProblemType;
+
+import java.util.List;
 
 
 /**
@@ -61,5 +64,10 @@ public interface IProblemTypeService extends IService<ProblemType> {
      * @return ProblemType
      */
     ProblemType selectProblemTypeById(String id);
+
+
+    boolean deleteProblemTypeAll(String id);
+
+    List<ProblemTypeTree> queryProblemTypeTreeByParentId(String parentId);
 
 }

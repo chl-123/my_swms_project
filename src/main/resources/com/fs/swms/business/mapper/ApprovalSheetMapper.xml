@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fs.swms.business.mapper.ApprovalSheetMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.fs.swms.business.entity.ApprovalSheet">
+        <id column="ID" property="id" />
+
+        <result column="PRODUCT_ID" property="productId" />
+        <result column="ADDRESS" property="address" />
+        <result column="CONTACTS" property="contacts" />
+        <result column="TEL" property="tel" />
+        <result column="SEGMENTS" property="segments" />
+        <result column="ISFREE" property="isFree" />
+        <result column="PROBLEM_DESC" property="problemDesc" />
+        <result column="FILENAMES" property="filenames" />
+        <result column="APPROVAL_STATUS" property="approvalStatus" />
+        <result column="APPROVAL_RESULT" property="approvalResult"></result>
+        <result column="APPROVAL_COMMENTS" property="approvalComments" />
+        <result column="APPROVAER" property="approvaer" />
+        <result column="APPROVAL_DATE" property="approvalDate" />
+        <result column="SETP" property="setp" />
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATOR" property="creator" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="OPERATOR" property="operator" />
+        <result column="DEL_FLAG" property="delFlag" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        ID, PRODUCT_ID, ADDRESS, CONTACTS, TEL, SEGMENTS, ISFREE, PROBLEM_DESC, FILENAMES, APPROVAL_STATUS, APPROVAL_COMMENTS, APPROVAER, APPROVAL_DATE, SETP,CREATE_TIME,CREATOR,UPDATE_TIME,OPERATOR,DEL_FLAG
+    </sql>
+
+
+    <select id="selectApprovalSheetList" resultType="com.fs.swms.business.dto.ApprovalSheetInfo" >
+        SELECT
+            A.ID   AS id,
+            S.SERVICE_NO AS serviceNo,
+            A.PRODUCT_ID     AS productId,
+            P.CUSTOMER_ID   AS customerId,
+            C.CUSTOMER_NAME AS customerName,
+            P.CONTRACT_NO AS contractNo,
+            P.JOB_NO      AS  jobNo,
+            P.FIGURE_NO     AS figureNo,
+            P.BOX_NO        AS boxNo,
+            P.POWER         AS power,
+            P.SPEED_RATIO      AS speedRatio,
+            P.EXPIRE_DATE   AS expireDate,
+            P.MANUFACTURE_DATE AS manufactureDate,
+            P.WINDFARM_ID AS windfarmId,
+            W.WINDFARM    AS windfarm,
+            A.ADDRESS          AS  address,
+            A.CONTACTS         AS  contacts,
+            A.TEL              AS  tel,
+            A.SEGMENTS         AS  segments,
+            A.ISFREE           AS  isFree ,
+            A.PROBLEM_DESC     AS  problemDesc,
+            A.FILENAMES        AS     filenames,
+            A.APPROVAL_STATUS  AS     approvalStatus,
+            A.APPROVAL_RESULT AS approvalResult,
+            A.APPROVAL_COMMENTS AS    approvalComments,
+            A.APPROVAER         AS    approvaer,
+            US.user_name         AS    approvaerName,
+            A.APPROVAL_DATE     AS    approvalDate,
+            A.SETP              AS    setp,
+            A.CREATE_TIME       AS    createTime,
+            A.CREATOR           AS    creator ,
+            USS.user_name       AS     creatorName,
+            A.UPDATE_TIME       AS    updateTime,
+            A.OPERATOR          AS    operator,
+            U.USER_NAME         AS    operatorName,
+            A.DEL_FLAG          AS   delFlag
+        FROM T_MM_APPROVAL_SHEET A
+                 LEFT JOIN T_BD_PRODUCT P ON P.ID=A.PRODUCT_ID  AND P.DEL_FLAG=0
+                 LEFT JOIN T_BD_CUSTOMER C ON C.ID=P.CUSTOMER_ID AND C.DEL_FLAG=0
+                 LEFT JOIN T_BD_WINDFARM W ON W.ID=P.WINDFARM_ID AND W.DEL_FLAG=0
+                LEFT JOIN T_SYS_USER USS ON USS.ID=A.CREATOR AND USS.DEL_FLAG=0
+                 LEFT JOIN T_SYS_USER U ON U.ID=A.OPERATOR AND U.DEL_FLAG=0
+                 LEFT JOIN T_SYS_USER US ON US.ID=A.APPROVAER AND US.DEL_FLAG=0
+
+                LEFT JOIN T_MM_SERVICE_REGISTER S ON S.APPROVAL_SHEET_ID=A.ID AND S.DEL_FLAG=0
+
+        WHERE A.DEL_FLAG = 0
+        <trim prefix="AND (" suffix=")" prefixOverrides="AND">
+            <if test="approvalSheet.serviceNo != null and approvalSheet.serviceNo != ''">
+                AND S.SERVICE_NO like concat(concat('%', #{approvalSheet.serviceNo}), '%')
+            </if>
+          <if test="approvalSheet.customerName != null and approvalSheet.customerName != ''">
+                AND C.CUSTOMER_NAME like concat(concat('%', #{approvalSheet.customerName}), '%')
+            </if>
+            <if test="approvalSheet.figureNo != null and approvalSheet.figureNo != ''">
+                AND P.FIGURE_NO like concat(concat('%', #{approvalSheet.figureNo}), '%')
+            </if>
+            <if test="approvalSheet.boxNo != null and approvalSheet.boxNo != ''">
+                AND P.BOX_NO like concat(concat('%', #{approvalSheet.boxNo}), '%')
+            </if>
+            <if test="approvalSheet.contractNo != null and approvalSheet.contractNo != ''">
+                AND P.CONTRACT_NO like concat(concat('%', #{approvalSheet.contractNo}), '%')
+            </if>
+            <if test="approvalSheet.jobNo != null and approvalSheet.jobNo != ''">
+                AND P.JOB_NO like concat(concat('%', #{approvalSheet.jobNo}), '%')
+            </if>
+            <if test="approvalSheet.isFree != null and approvalSheet.isFree != ''">
+                AND A.ISFREE =#{approvalSheet.isFree}
+            </if>
+            <if test="approvalSheet.segments != null and approvalSheet.segments != ''">
+                AND A.SEGMENTS =#{approvalSheet.segments}
+            </if>
+            <if test="approvalSheet.manufactureDateStart != null and approvalSheet.manufactureDateEnd != null ">
+                AND P.MANUFACTURE_DATE BETWEEN #{approvalSheet.manufactureDateStart} and #{approvalSheet.manufactureDateEnd}
+            </if>
+            <if test="approvalSheet.expireDateStart != null and approvalSheet.expireDateEnd != null ">
+                AND P.EXPIRE_DATE BETWEEN #{approvalSheet.expireDateStart} and #{approvalSheet.expireDateEnd}
+            </if>
+            <if test="approvalSheet.createTimeStart != null and approvalSheet.createTimeEnd != null ">
+                AND A.CREATE_TIME BETWEEN #{approvalSheet.createTimeStart} and #{approvalSheet.createTimeEnd}
+            </if>
+            <if test="approvalSheet.setp != null and approvalSheet.setp != ''">
+                AND A.SETP = #{approvalSheet.setp}
+            </if>
+
+            <if test="approvalSheet.windfarm != null and approvalSheet.windfarm != ''">
+                AND W.WINDFARM like concat(concat('%', #{approvalSheet.windfarm}), '%')
+            </if>
+            <if test="approvalSheet.contractNo != null and approvalSheet.contractNo != ''">
+                AND P.CONTRACT_NO like concat(concat('%', #{approvalSheet.contractNo}), '%')
+            </if>
+            <if test="approvalSheet.jobNo != null and approvalSheet.jobNo != ''">
+                AND P.JOB_NO like concat(concat('%', #{approvalSheet.jobNo}), '%')
+            </if>
+
+        </trim>
+        ORDER BY A.UPDATE_TIME DESC
+    </select>
+
+
+</mapper>

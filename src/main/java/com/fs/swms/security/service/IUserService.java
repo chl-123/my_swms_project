@@ -83,4 +83,10 @@ public interface IUserService extends IService<User> {
      * @return User
      */
     User insertUser(User user);
+    /**
+     * 通过组织id查询用户
+     * @param organizationId
+     * @return User
+     */
+    User getUserByOrganizationId(String organizationId);
 }

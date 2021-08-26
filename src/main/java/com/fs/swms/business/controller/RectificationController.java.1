@@ -1,0 +1,104 @@
+package com.fs.swms.business.controller;
+
+
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fs.swms.business.dto.CreateRectification;
+import com.fs.swms.business.entity.Rectification;
+import com.fs.swms.business.service.IRectificationService;
+import com.fs.swms.common.annotation.log.AroundLog;
+import com.fs.swms.common.base.PageResult;
+import com.fs.swms.common.base.Result;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+/**
+ * <p>
+ *  前端控制器
+ * </p>
+ *
+ * @author chl
+ * @since 2021-08-19
+ */
+@RestController
+@RequestMapping("/rectification")
+public class RectificationController {
+    @Autowired
+    private IRectificationService rectificationService;
+
+    @PostMapping("/create")
+    @ApiOperation(value = "添加审批表")
+    @AroundLog(name = "添加审批表")
+    public Result<?> create(@RequestBody CreateRectification rectification){
+        System.out.println(rectification.toString());
+        boolean result=rectificationService.createRectification(rectification);
+        if (result) {
+            return new Result<>().success("添加成功");
+
+        }else {
+            return new Result<>().error("添加失败，请重试");
+        }
+    }
+
+    @GetMapping("/list")
+    @ApiOperation(value = "查询全部")
+    @AroundLog(name = "查询全部")
+    public PageResult<Rectification> list(Rectification rectification, Page<Rectification> page) {
+        Page<Rectification> pageRectification = rectificationService.selectRectificationList(page, rectification);
+        PageResult<Rectification> pageResult = new PageResult<Rectification>(pageRectification.getTotal(), pageRectification.getRecords());
+        return pageResult;
+    }
+
+    @GetMapping("/all")
+    @ApiOperation(value = "查询审批单列表")
+    @AroundLog(name = "查询审批单列表")
+    public PageResult<Rectification> all(Page<Rectification> page) {
+        Page<Rectification> pageRectification = rectificationService.selectRectificationAll(page);
+        PageResult<Rectification> pageResult = new PageResult<Rectification>(pageRectification.getTotal(), pageRectification.getRecords());
+        return pageResult;
+    }
+
+    /*@PostMapping("/delete/{id}")
+    @AroundLog(name = "删除审批单")
+    @ApiImplicitParam(paramType = "path", name = "id", value = "问齿轮箱D", required = true, dataType = "String")
+    public Result<?> delete(@PathVariable("id") String id) {
+        if (null == id) {
+            return new Result<>().error("齿轮箱id不能为空");
+        }
+        boolean result = rectificationService.deleteRectification(id);
+        if (result) {
+            return new Result<>().success("删除成功");
+        } else {
+            return new Result<>().error("删除失败");
+        }
+    }
+    @PostMapping("/update")
+    @ApiOperation(value = "更新审批单信息")
+    @AroundLog(name = "更新审批单信息")
+    public Result<?> update(@RequestBody UpdateRectification rectification){
+        System.out.println(rectification.toString());
+        boolean result=rectificationService.updateRectification(rectification);
+        if (result) {
+            return new Result<>().success("修改成功");
+
+        }else {
+            return new Result<>().error("修改失败，请重试");
+        }
+    }
+
+    @GetMapping("/select/{id}")
+    @ApiOperation(value = "查询审批表")
+    @AroundLog(name = "查询审批表")
+    public Result<Rectification> select(@PathVariable("id")String id) {
+        Rectification rectification = rectificationService.selectRectificationById(id);
+        return new Result<Rectification>().success().put(rectification);
+    }
+
+    @GetMapping("/selectByProductId/{productId}")
+    @ApiOperation(value = "查询审批表")
+    @AroundLog(name = "查询审批表")
+    public Result<Rectification> selectByProductId(@PathVariable("productId")String productId) {
+        Rectification rectification = rectificationService.selectRectificationById(productId);
+        return new Result<Rectification>().success().put(rectification);
+    }*/
+}

@@ -63,4 +63,10 @@ public interface ICustomerService extends IService<Customer> {
      * @return List<Customer>
      */
     List<Customer> selectCustomerByCustomerName(String customerName);
+    /**
+     * 查询全部客户风场信息
+     * @param page
+     * @return Page<CustomerWindFarmInfo>
+     */
+    Page<CustomerWindFarmInfo> selectPageAll(Page<CustomerWindFarmInfo> page);
 }

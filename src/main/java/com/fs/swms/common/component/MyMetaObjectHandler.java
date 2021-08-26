@@ -17,7 +17,6 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
         Object creator = getFieldValByName("creator", metaObject);
         if (null == creator && null != SecurityUtils.getSubject()) {
             String principal = (String) SecurityUtils.getSubject().getPrincipal();
-            setFieldValByName("creator", "用户名", metaObject);
             if (!StringUtils.isEmpty(principal)) {
                 JSONObject userObj = JSON.parseObject(principal);
                 setFieldValByName("creator", userObj.getString("id"), metaObject);
@@ -34,7 +33,6 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
         Object operator = getFieldValByName("operator", metaObject);
         if (null == operator && null != SecurityUtils.getSubject()) {
             String principal = (String) SecurityUtils.getSubject().getPrincipal();
-            setFieldValByName("operator", "用户名", metaObject);
             if (!StringUtils.isEmpty(principal)) {
                 JSONObject userObj = JSON.parseObject(principal);
                 setFieldValByName("operator", userObj.getString("id"), metaObject);

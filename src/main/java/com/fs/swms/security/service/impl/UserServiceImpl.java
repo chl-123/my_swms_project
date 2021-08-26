@@ -434,4 +434,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         baseMapper.insert(user);
         return user;
     }
+
+    @Override
+    public User getUserByOrganizationId(String organizationId) {
+        QueryWrapper<OrganizationUser> queryWrapper=new QueryWrapper<>();
+        queryWrapper.eq("organization_id",organizationId);
+        List<OrganizationUser> organizationUserList = organizationUserService.list(queryWrapper);
+        if (CollectionUtils.isEmpty(organizationUserList)) {
+            throw new BusinessException("查询不到用户部门信息");
+        }
+        User user = this.getById(organizationUserList.get(0).getUserId());
+        if (user == null) {
+            throw new BusinessException("查询不到用户信息");
+        }
+        return user;
+    }
 }

@@ -21,9 +21,7 @@ import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -60,24 +58,24 @@ public class Utils {
         return keys;
 
     }
-    public static String uploadFile(MyFile myFile)  {
+    public static String uploadFile(String dataPath,MyFile myFile)  {
         MultipartFile file=myFile.getFile();
         String originalFilename = file.getOriginalFilename();
-//        String suffix = originalFilename.substring(originalFilename.lastIndexOf("."));
-//        String s = UUID.randomUUID().toString();
-//        String newName = s + suffix;
+        String suffix = originalFilename.substring(originalFilename.lastIndexOf("."));
+        String s = UUID.randomUUID().toString();
+        String newName = s + suffix;
         String parentPath = getParentPath();
-        File dest = new File(parentPath, originalFilename);
+        File dest = new File(parentPath+"/"+dataPath, newName);
         try {
             //目录不存在则创建，依赖google的guava工具包
+            Files.createParentDirs(new File(""));
             Files.createParentDirs(dest);
             file.transferTo(dest);
-            return originalFilename;
+            return newName;
         } catch (IOException e) {
             e.printStackTrace();
             throw new BusinessException("文件上传失败");
         }
-
     }
     public static boolean delFile(String fileName){
         String parentPath = getParentPath();
@@ -103,7 +101,7 @@ public class Utils {
         IOUtils.closeQuietly(os);
 
     }
-    public static void downloadFile(String fileName,HttpServletRequest request, HttpServletResponse response){
+    public static void downloadFile(String fileName,HttpServletRequest request, HttpServletResponse response) throws Exception{
         try {
             ClassPathResource classPathResource = new ClassPathResource("upload/"+fileName);
             File file = classPathResource.getFile();
@@ -124,11 +122,16 @@ public class Utils {
             out.write(buffer);
             out.flush();
             out.close();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (FileNotFoundException e) {
+            throw new FileNotFoundException("文件不存在");
+        }catch (Exception e) {
+            throw e;
         }
 
     }
+
+
+
 
 
     private static String getParentPath() {
@@ -168,6 +171,18 @@ public class Utils {
         SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
         Date parse = sf.parse(dateInfo);
         return parse;
+    }
+    public static String uploadFiles(List<MultipartFile> files, String dataPath){
+        String fileNames="";
+        for(MultipartFile file:files){
+            if (!file.getOriginalFilename().equals("")&&file!=null&&file.getOriginalFilename()!=null) {
+                MyFile myFile=new MyFile();
+                myFile.setFile(file);
+                String fileName = Utils.uploadFile(dataPath,myFile);
+                fileNames=dataPath+fileName+";"+fileNames;
+            }
+        }
+        return fileNames;
     }
 
 

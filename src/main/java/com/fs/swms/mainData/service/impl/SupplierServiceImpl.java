@@ -40,7 +40,8 @@ public class SupplierServiceImpl extends ServiceImpl<SupplierMapper, Supplier> i
 
     @Override
     public Page<Supplier> selectSupplierAll(Page<Supplier> page) {
-        Page<Supplier> supplierPage = supplierMapper.selectSupplierAll(page);
+        QueryWrapper<Supplier> supplierQueryWrapper=new QueryWrapper<>();
+        Page<Supplier> supplierPage = this.page(page, supplierQueryWrapper);
         return supplierPage;
     }
 
@@ -160,6 +161,9 @@ public class SupplierServiceImpl extends ServiceImpl<SupplierMapper, Supplier> i
         QueryWrapper<Supplier> supplierQueryWrapper =new QueryWrapper<>();
         supplierQueryWrapper.eq("SUPPLIER_NO", supplierNo);
         List<Supplier> list = this.list(supplierQueryWrapper);
+        if (CollectionUtils.isEmpty(list)) {
+            throw new BusinessException("根据供应商代码查询不到信息");
+        }
         return list.get(0);
     }
 

@@ -5,6 +5,7 @@ server:
   #    min-spare-threads: 30
   port: 8080
   uri-encoding: utf-8
+
 system:
   #注册用户默认密码
   defaultPwd: 123456

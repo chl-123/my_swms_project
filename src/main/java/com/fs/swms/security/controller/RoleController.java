@@ -41,7 +41,7 @@ public class RoleController {
      * 查询角色列表
      */
     @GetMapping("/list")
-    /*@RequiresRoles("SYSADMIN")*/
+    @RequiresRoles("SYSADMIN")
     @ApiOperation(value = "查询角色列表")
     public PageResult<Role> list(Role role, Page<Role> page) {
         System.out.println(role.getParentId());
@@ -55,7 +55,7 @@ public class RoleController {
      * 添加角色
      */
     @PostMapping("/create")
-//    @RequiresRoles("SYSADMIN")
+    @RequiresRoles("SYSADMIN")
     @ApiOperation(value = "添加角色")
     @AroundLog(name = "添加角色")
     public Result<?> create(@RequestBody CreateRole role) {

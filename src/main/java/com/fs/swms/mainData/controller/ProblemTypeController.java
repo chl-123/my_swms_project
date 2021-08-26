@@ -9,6 +9,7 @@ import com.fs.swms.common.base.Result;
 import com.fs.swms.common.entity.MyFile;
 import com.fs.swms.common.util.Utils;
 import com.fs.swms.mainData.dto.CreateProblemType;
+import com.fs.swms.mainData.dto.ProblemTypeTree;
 import com.fs.swms.mainData.dto.UpdateProblemType;
 import com.fs.swms.mainData.entity.ProblemType;
 import com.fs.swms.mainData.service.IProblemTypeService;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 
 /**
@@ -79,9 +81,9 @@ public class ProblemTypeController {
     @GetMapping("/select/{id}")
     @ApiOperation(value = "查询问题名称")
     @ApiImplicitParam(paramType = "path", name = "id", value = "问题ID", required = true, dataType = "String")
-    public ProblemType select(@PathVariable("id")String id) {
+    public Result<ProblemType> select(@PathVariable("id")String id) {
         ProblemType problemType = problemTypeService.selectProblemTypeById(id);
-        return problemType;
+        return new Result<ProblemType>().success().put(problemType);
     }
     @PostMapping("/delete/{id}")
     @AroundLog(name = "删除问题")
@@ -91,6 +93,20 @@ public class ProblemTypeController {
             return new Result<>().error("问题id不能为空");
         }
         boolean result = problemTypeService.deleteProblemType(id);
+        if (result) {
+            return new Result<>().success("删除成功");
+        } else {
+            return new Result<>().error("删除失败");
+        }
+    }
+    @PostMapping("/deleteAll/{id}")
+    @AroundLog(name = "全部问题连同子问题")
+    @ApiImplicitParam(paramType = "path", name = "id", value = "问题ID", required = true, dataType = "String")
+    public Result<?> deleteAll(@PathVariable("id") String id) {
+        if (null == id) {
+            return new Result<>().error("问题id不能为空");
+        }
+        boolean result = problemTypeService.deleteProblemTypeAll(id);
         if (result) {
             return new Result<>().success("删除成功");
         } else {
@@ -118,6 +134,13 @@ public class ProblemTypeController {
         }catch (Exception e){
             throw new BusinessException("文件下载失败");
         }
+    }
+    @GetMapping(value = "/tree")
+    @ApiOperation(value = "查询问题类型构树", notes = "树状问题类型信息")
+    @ApiImplicitParam(paramType = "query", name = "parentId", value = "父级ID", required = false, dataType = "String")
+    public Result<List<ProblemTypeTree>> queryProblemTypeTree(String parentId) {
+        List<ProblemTypeTree> treeList = problemTypeService.queryProblemTypeTreeByParentId(parentId);
+        return new Result<List<ProblemTypeTree>>().success().put(treeList);
     }
 
 

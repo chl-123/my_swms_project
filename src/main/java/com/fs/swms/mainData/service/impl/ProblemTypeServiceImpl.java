@@ -8,6 +8,7 @@ import com.fs.swms.common.base.BusinessException;
 import com.fs.swms.common.entity.MyFile;
 import com.fs.swms.common.excel.ExcelUtil;
 import com.fs.swms.mainData.dto.CreateProblemType;
+import com.fs.swms.mainData.dto.ProblemTypeTree;
 import com.fs.swms.mainData.dto.ReadExcelProblemType;
 import com.fs.swms.mainData.dto.UpdateProblemType;
 import com.fs.swms.mainData.entity.ProblemType;
@@ -34,6 +35,7 @@ public class ProblemTypeServiceImpl extends ServiceImpl<ProblemTypeMapper, Probl
 
     @Override
     public boolean createProblemType(CreateProblemType problemType) {
+        boolean result=false;
         QueryWrapper<ProblemType> ew = new QueryWrapper<>();
         //查找相应的条件
         ew.eq("TYPE_NAME", problemType.getTypeName())/*.or().eq("SUPPLIER_NO",problemType.getProblemTypeNo())*/;
@@ -41,11 +43,27 @@ public class ProblemTypeServiceImpl extends ServiceImpl<ProblemTypeMapper, Probl
         if (!CollectionUtils.isEmpty(problemTypeList)) {//判断是否重复
             throw new BusinessException("问题名称已存在");
         }
+        if (problemType.getId()!=null) {
+            QueryWrapper<ProblemType> queryWrapper = new QueryWrapper<>();
+            //查找相应的条件
+            queryWrapper.eq("ID", problemType.getId())/*.or().eq("SUPPLIER_NO",problemType.getProblemTypeNo())*/;
+            List<ProblemType> list = this.list(ew);
+            if (CollectionUtils.isEmpty(list)) {//判断是否重复
+                throw new BusinessException("该问题父级不存在");
+            }
+            ProblemType problemTypeEntity = new ProblemType();
+            problemTypeEntity.setTypeName(problemType.getTypeName());
+            problemTypeEntity.setParentId(problemType.getId());
+            //执行保存
+            result = this.save(problemTypeEntity);
+        }else {
+            ProblemType problemTypeEntity = new ProblemType();
+            BeanUtils.copyProperties(problemType, problemTypeEntity);
+            //执行保存
+            result = this.save(problemTypeEntity);
+        }
         //拷贝数据
-        ProblemType problemTypeEntity = new ProblemType();
-        BeanUtils.copyProperties(problemType, problemTypeEntity);
-        //执行保存
-        boolean result = this.save(problemTypeEntity);
+
         return result;
     }
 
@@ -58,13 +76,34 @@ public class ProblemTypeServiceImpl extends ServiceImpl<ProblemTypeMapper, Probl
 
     @Override
     public Page<ProblemType> selectProblemTypeAll(Page<ProblemType> page) {
-        Page<ProblemType> problemTypePage = problemTypeMapper.selectProblemTypeAll(page);
+        QueryWrapper<ProblemType> queryWrapper=new QueryWrapper<>();
+        Page<ProblemType> problemTypePage = this.page(page, queryWrapper);
         return problemTypePage;
     }
 
     @Override
     public boolean deleteProblemType(String id) {
+        QueryWrapper<ProblemType> queryWrapper=new QueryWrapper<>();
+        queryWrapper.eq("PARENT_ID", id);
+        List<ProblemType> list = this.list(queryWrapper);
+        if (!CollectionUtils.isEmpty(list)) {
+            throw new BusinessException("当前问题类型包含子问题类型，如果删除，则子问题类型会一并删除，是否继续删除?");
+        }
         boolean result = this.removeById(id);
+        return result;
+    }
+    public boolean deleteProblemTypeAll(String id) {
+        boolean result=false;
+        QueryWrapper<ProblemType> queryWrapper=new QueryWrapper<>();
+        queryWrapper.eq("PARENT_ID", id);
+        List<ProblemType> list = this.list(queryWrapper);
+        if (!CollectionUtils.isEmpty(list)) {
+            for(ProblemType problemType:list){
+                result = this.removeById(problemType.getId());
+            }
+            result = this.removeById(id);
+        }
+
         return result;
     }
 
@@ -142,6 +181,43 @@ public class ProblemTypeServiceImpl extends ServiceImpl<ProblemTypeMapper, Probl
     @Override
     public ProblemType selectProblemTypeById(String id) {
         ProblemType problemType = problemTypeMapper.selectById(id);
+        if (problemType == null) {
+            throw new BusinessException("根据ID查询不到数据");
+        }
         return problemType;
+    }
+
+    @Override
+    public List<ProblemTypeTree> queryProblemTypeTreeByParentId(String parentId) {
+        if (null == parentId) {
+            parentId = "0";
+        }
+        List<ProblemTypeTree> orgs = new ArrayList<ProblemTypeTree>();
+        try {
+            List<ProblemTypeTree> orgList = problemTypeMapper.queryProblemTypeTree(parentId);
+            Map<String, ProblemTypeTree> problemTypeMap = new HashMap<String, ProblemTypeTree>();
+            // 组装子父级目录
+            for (ProblemTypeTree problemType : orgList) {
+                problemTypeMap.put(problemType.getId(), problemType);
+            }
+            for (ProblemTypeTree problemType : orgList) {
+                String treePId = problemType.getParentId();
+                ProblemTypeTree pTreev = problemTypeMap.get(treePId);
+                if (null != pTreev && !problemType.equals(pTreev)) {
+                    List<ProblemTypeTree> nodes = pTreev.getChildren();
+                    if (null == nodes) {
+                        nodes = new ArrayList<ProblemTypeTree>();
+                        pTreev.setChildren(nodes);
+                    }
+                    nodes.add(problemType);
+                } else {
+                    orgs.add(problemType);
+                }
+            }
+        } catch (Exception e) {
+            throw new BusinessException("查询组织树失败");
+        }
+        return orgs;
+
     }
 }

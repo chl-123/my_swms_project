@@ -35,6 +35,7 @@ public class ScanNoAuthenticationMethod implements CommandLineRunner {
         doScanner(scanPackage);
         Set<String> urlAndMethodSet = new HashSet<>();
         for (String aClassName : Constant.METHOD_URL_SET) {
+//            aClassName=aClassName.split(".classes.")[1];
             Class<?> clazz = Class.forName(aClassName);
             String baseUrl = "";
             String[] classUrl = {};

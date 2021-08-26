@@ -59,6 +59,11 @@ public class CustomerServiceImpl extends ServiceImpl<CustomerMapper, Customer> i
         return customerWindFarmInfoPage;
     }
 
+    public Page<CustomerWindFarmInfo> selectPageAll(Page<CustomerWindFarmInfo> page) {
+        Page<CustomerWindFarmInfo> customerWindFarmInfoPage = customerMapper.selectCustomerPageByCustomerName(page, new Customer());
+        return customerWindFarmInfoPage;
+    }
+
     @Override
     public List<Customer> selectCustomers(String customerName) {
         QueryWrapper<Customer> customerQueryWrapper=new QueryWrapper<>();

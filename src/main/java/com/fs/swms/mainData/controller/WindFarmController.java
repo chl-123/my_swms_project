@@ -16,7 +16,6 @@ import com.fs.swms.mainData.entity.Customer;
 import com.fs.swms.mainData.service.ICustomerService;
 import com.fs.swms.mainData.service.IWindfarmService;
 import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -67,30 +66,29 @@ public class WindFarmController {
         }
 
     }
-    @PostMapping("/delete/{customerId}/{windfarmId}")
+    @PostMapping("/delete/{customerId}")
     @AroundLog(name = "删除客户风场")
     @ApiOperation(value = "根据客户ID和风场ID删除客户风场信息")
-    @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "path", name = "customerId", value = "客户ID", required = true, dataType = "String"),
-            @ApiImplicitParam(paramType = "path", name = "windfarmId", value = "风场ID", required = true, dataType = "String")
-    })
-    public Result<?> delete(@PathVariable("customerId") String customerId,@PathVariable("windfarmId")String windfarmId) {
-        if (null == customerId||null==windfarmId) {
-            return new Result<>().error("客户ID或风场ID不能为空");
+    @ApiImplicitParam(paramType = "path", name = "customerId", value = "客户ID", required = true, dataType = "String")
+
+    public Result<?> delete(@PathVariable("customerId") String customerId) {
+        if (null == customerId) {
+            return new Result<>().error("客户ID不能为空");
         }
-        boolean result = iWindfarmService.deleteWindfarm(customerId,windfarmId);
+        boolean result = iWindfarmService.deleteWindfarm(customerId);
         if (result) {
             return new Result<>().success("删除成功");
         } else {
             return new Result<>().error("删除失败");
         }
     }
-    @PostMapping("/select/{customerId}")
+    @GetMapping("/select/{customerId}")
     @AroundLog(name = "根据客户ID查客户风场信息")
     @ApiImplicitParam(paramType = "path", name = "customerId", value = "客户ID", required = true, dataType = "String")
-    public QueryWindfarm select(@PathVariable("customerId") String customerId) {
+    public Result<QueryWindfarm> select(@PathVariable("customerId") String customerId) {
         QueryWindfarm result = iWindfarmService.selectWindfarmByCustomerId(customerId);
-        return result;
+
+        return new Result<QueryWindfarm>().success().put(result);
     }
     @PostMapping("/update")
     @ApiOperation(value = "修改客户风场")
@@ -111,6 +109,13 @@ public class WindFarmController {
         PageResult<CustomerWindFarmInfo> pageResult = new PageResult<CustomerWindFarmInfo>(customerWindFarmInfoPage.getTotal(), customerWindFarmInfoPage.getRecords());
         return pageResult;
     }
+    @GetMapping("/all")
+    @ApiOperation(value = "查询全部客户风场信息")
+    public PageResult<CustomerWindFarmInfo> all(Page<CustomerWindFarmInfo> page) {
+        Page<CustomerWindFarmInfo> customerWindFarmInfoPage = iCustomerService.selectPageAll(page);
+        PageResult<CustomerWindFarmInfo> pageResult = new PageResult<CustomerWindFarmInfo>(customerWindFarmInfoPage.getTotal(), customerWindFarmInfoPage.getRecords());
+        return pageResult;
+    }
     @GetMapping("/download/template")
     @ApiOperation(value = "文件下载")
     @ApiImplicitParam(paramType = "query", name = "fileName", value = "文件名", required = true, dataType = "String")
@@ -121,5 +126,6 @@ public class WindFarmController {
             throw new BusinessException("文件下载失败");
         }
     }
+
 
 }

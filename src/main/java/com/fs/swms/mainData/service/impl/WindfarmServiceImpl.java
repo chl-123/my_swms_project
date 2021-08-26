@@ -111,16 +111,11 @@ public class WindfarmServiceImpl extends ServiceImpl<WindfarmMapper, Windfarm> i
     }
 
     @Override
-    public boolean deleteWindfarm(String customerId,String windfarmId) {
-        QueryWrapper<Windfarm> ew=new QueryWrapper<>();
-        ew.eq("CUSTOMER_ID",customerId);
-        List<Windfarm> list = this.list(ew);
-        if (list.size()==1&&!CollectionUtils.isEmpty(list)) {
-            return (iCustomerService.deleteCustomer(customerId)&&this.removeById(windfarmId));
-        }else{
-            boolean result = this.removeById(windfarmId);
-            return result;
-        }
+    public boolean deleteWindfarm(String customerId) {
+        boolean result=false;
+        result=iCustomerService.deleteCustomer(customerId);
+        result=windfarmMapper.deleteByCustomerId(customerId);
+        return result;
 
     }
 
@@ -203,16 +198,26 @@ public class WindfarmServiceImpl extends ServiceImpl<WindfarmMapper, Windfarm> i
     @Override
     public QueryWindfarm selectWindfarmByCustomerId(String customerId) {
         Customer customer = iCustomerService.getById(customerId);
+        if (customer == null) {
+            throw new BusinessException("根据该客户ID查询不到结果");
+        }
         QueryWrapper<Windfarm> windfarmQueryWrapper=new QueryWrapper<>();
         windfarmQueryWrapper.eq("CUSTOMER_ID",customerId);
         List<Windfarm> windfarmList=this.list(windfarmQueryWrapper);
         QueryWindfarm queryWindfarm=new QueryWindfarm();
         queryWindfarm.setCustomerName(customer.getCustomerName());
-        List<String> windfarmNameList=new ArrayList<>();
+        List<Windfarm> windfarms=new ArrayList<>();
         for (Windfarm windfarm: windfarmList){
-            windfarmNameList.add(windfarm.getWindfarm());
+            Windfarm windfarmEntity=new Windfarm();
+
+            BeanUtils.copyProperties(windfarm,windfarmEntity);
+            windfarms.add(windfarmEntity);
         }
-        queryWindfarm.setWindFarmList(windfarmNameList);
+        BeanUtils.copyProperties(customer,queryWindfarm);
+        queryWindfarm.setWindFarmInfoList(windfarms);
+
         return queryWindfarm;
     }
+
+
 }

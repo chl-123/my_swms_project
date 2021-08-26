@@ -8,6 +8,10 @@ import com.fs.swms.mainData.dto.ProductInfo;
 import com.fs.swms.mainData.dto.QueryProduct;
 import com.fs.swms.mainData.dto.UpdateProduct;
 import com.fs.swms.mainData.entity.Product;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.text.ParseException;
+import java.util.List;
 
 /**
  * <p>
@@ -23,14 +27,14 @@ public interface IProductService extends IService<Product> {
      * @param product
      * @return boolean
      */
-    boolean createProduct(CreateProduct product, MyFile file);
+    boolean createProduct(CreateProduct product, List<MultipartFile> files);
     /**
      * 质管科更新齿轮箱信息
      * @param product
-     * @param file
+     * @param files
      * @return boolean
      */
-    boolean updateProductForQM(UpdateProduct product,MyFile file);
+    boolean updateProductForQM(UpdateProduct product,List<MultipartFile> files);
     /**
      * 营销科更新齿轮箱信息
      * @param product
@@ -66,12 +70,25 @@ public interface IProductService extends IService<Product> {
      * @param id
      * @return boolean
      */
-    ProductInfo selectProductByIdForMarketing(String id);
+    ProductInfo selectProductByIdForMarketing(String id) throws ParseException;
     /**
      * 根据查询条件查询齿轮箱信息
      * @param product
      * @param page
      * @return Page<ProductInfo>
      */
-    Page<ProductInfo> list(QueryProduct product, Page<ProductInfo> page);
+    Page<ProductInfo> selectList(QueryProduct product, Page<ProductInfo> page);
+    /**
+     * 查询全部齿轮箱信息
+     * @param page
+     * @return Page<ProductInfo>
+     */
+    Page<ProductInfo> selectAll(Page<ProductInfo> page);
+
+    /**
+     * 根据齿轮箱编号查询齿轮箱信息
+     * @param boxNo
+     * @return ProductInfo
+     */
+    ProductInfo selectProductByBoxNo(String boxNo);
 }
