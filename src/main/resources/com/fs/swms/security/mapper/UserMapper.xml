@@ -7,9 +7,6 @@
         <id column="id" property="id" />
         <result column="user_account" property="userAccount" />
         <result column="user_name" property="userName" />
-        <result column="user_sex" property="userSex" />
-        <result column="user_email" property="userEmail" />
-        <result column="user_mobile" property="userMobile" />
         <result column="user_password" property="userPassword" />
         <result column="user_status" property="userStatus" />
         <result column="create_time" property="createTime" />
@@ -27,24 +24,24 @@
     <!-- 分页查询用户列表 -->
     <select id="selectUserList" resultType="com.fs.swms.security.dto.UserInfo" parameterType="com.fs.swms.security.entity.User">
         SELECT
-            A.id AS id,
-            A.user_account AS userAccount,
-            A.user_name AS userName,
-            A.user_sex AS userSex,
-            A.user_email AS userEmail,
-            A.user_mobile AS userMobile,
-            A.user_password AS userPassword,
-            A.user_status AS userStatus,
-            A.create_time AS createTime,
-            A.creator AS creator,
-            A.update_time AS updateTime,
-            A.OPERATOR AS operator,
-            G.id AS organizationId,
-            G.organization_name AS organizationName,
-            to_char(wm_concat(DISTINCT to_char(C.id))) AS roleIds,
-            wm_concat(DISTINCT to_char(C.role_key)) AS roleKey,
-            wm_concat(DISTINCT to_char(C.role_name)) AS roleName,
-            wm_concat(DISTINCT to_char(H.organization_id)) AS dataPermission
+        A.id AS id,
+        A.user_account AS userAccount,
+        A.user_name AS userName,
+        A.user_sex AS userSex,
+        A.user_email AS userEmail,
+        A.user_mobile AS userMobile,
+        A.user_password AS userPassword,
+        A.user_status AS userStatus,
+        A.create_time AS createTime,
+        A.creator AS creator,
+        A.update_time AS updateTime,
+        A.OPERATOR AS operator,
+        G.id AS organizationId,
+        G.organization_name AS organizationName,
+        to_char(wm_concat(DISTINCT to_char(C.id))) AS roleIds,
+        wm_concat(DISTINCT to_char(C.role_key)) AS roleKey,
+        wm_concat(DISTINCT to_char(C.role_name)) AS roleName,
+        wm_concat(DISTINCT to_char(H.organization_id)) AS dataPermission
         FROM t_sys_user A
         INNER JOIN t_sys_user_role B ON A.id = B.user_id AND B.del_flag = 0
         LEFT JOIN t_sys_role C ON B.role_id = C.id AND C.del_flag = 0
@@ -57,16 +54,10 @@
         </if>
         <trim prefix="AND (" suffix=")" prefixOverrides="AND">
             <if test="user.userAccount != null and user.userAccount != ''">
-                AND A.user_account like concat('%', #{user.userAccount}, '%')
+                AND A.USER_NO like '%' || #{user.userAccount} ||'%'
             </if>
             <if test="user.userName != null and user.userName != ''">
-                AND A.user_name like concat('%', #{user.userName}, '%')
-            </if>
-            <if test="user.userMobile != null and user.userMobile != ''">
-                AND A.user_mobile like concat('%', #{user.userMobile}, '%')
-            </if>
-            <if test="user.userEmail != null and user.userEmail != ''">
-                AND A.user_email like concat('%', #{user.userEmail}, '%')
+                AND A.USER_NAME like '%' || #{user.userName} ||'%'
             </if>
             <if test="user.userStatus != null and user.userStatus != ''">
                 AND A.user_status = #{user.userStatus}
@@ -74,7 +65,9 @@
             <if test="user.roleId != null and user.roleId != ''">
                 AND B.role_id = #{user.roleId}
             </if>
-
+            <if test="user.organizationId != null and user.organizationId != ''">
+                AND G.id = #{user.organizationId}
+            </if>
             <if test="user.startDate != null and user.startDate != ''">
                 AND DATE_FORMAT(A.create_time,'%Y-%m-%d') &gt;= DATE_FORMAT(#{user.startDate},'%Y-%m-%d')
             </if>
@@ -84,21 +77,34 @@
         </trim>
 
         group by
-            A.id ,
-            A.user_account,
-            A.user_name,
-            A.user_sex,
-            A.user_email,
-            A.user_mobile,
-            A.user_password,
-            A.user_status,
-            A.create_time,
-            A.creator,
-            A.update_time,
-            A.OPERATOR,
-            G.id,
-            G.organization_name
+        A.id ,
+        A.user_account,
+        A.user_name,
+        A.user_sex,
+        A.user_email,
+        A.user_mobile,
+        A.user_password,
+        A.user_status,
+        A.create_time,
+        A.creator,
+        A.update_time,
+        A.OPERATOR,
+        G.id,
+        G.organization_name
         ORDER BY createTime DESC
+    </select>
+    <!--根据组织机构id查询用列表-->
+    <select id="selectUserListByOrganizationId" resultType="com.fs.swms.security.dto.UserInfo" parameterType="String">
+        select
+            A.id AS id,
+            A.user_name AS userName,
+            G.organization_name AS organizationName,
+            G.id AS organizationId
+        FROM t_sys_user A
+                 INNER JOIN t_sys_organization_user F ON (A.id = F.user_id AND F.del_flag = 0)
+                 INNER JOIN t_sys_organization G ON (F.organization_id = G.id AND G.del_flag = 0)
+        WHERE A.del_flag = 0 AND  G.id = #{organizationId}
+        ORDER BY A.user_name DESC
     </select>
 
 </mapper>

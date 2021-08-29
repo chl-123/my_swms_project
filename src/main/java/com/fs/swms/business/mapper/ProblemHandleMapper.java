@@ -2,6 +2,8 @@ package com.fs.swms.business.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fs.swms.business.dto.ProblemHandleInfo;
+import com.fs.swms.business.dto.QueryProblemHandle;
 import com.fs.swms.business.entity.ProblemHandle;
 
 /**
@@ -14,7 +16,5 @@ import com.fs.swms.business.entity.ProblemHandle;
  */
 public interface ProblemHandleMapper extends BaseMapper<ProblemHandle> {
 
-    Page<ProblemHandle> selectProblemHandleList(Page<ProblemHandle> page, ProblemHandle problemHandle);
-
-    Page<ProblemHandle> selectProblemHandleAll(Page<ProblemHandle> page);
+    Page<ProblemHandleInfo> selectProblemHandleForManagementList(Page<ProblemHandleInfo> page, QueryProblemHandle problemHandle);
 }

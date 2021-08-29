@@ -18,6 +18,6 @@ public class ReadExcelProblemType extends BaseRowModel {
     private String typeName;
 
     @ExcelProperty(value = "上一级问题类型名称",index = 1)
-    private String parentId;
+    private String parentTypeName;
 
 }

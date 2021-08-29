@@ -2,6 +2,7 @@ package com.fs.swms.mainData.controller;
 
 
 import com.fs.swms.common.base.Result;
+import com.fs.swms.common.controller.BaseController;
 import com.fs.swms.mainData.entity.Customer;
 import com.fs.swms.mainData.service.ICustomerService;
 import io.swagger.annotations.ApiOperation;
@@ -25,17 +26,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/customer")
 
-public class CustomerController {
+public class CustomerController extends BaseController {
     @Autowired
     private ICustomerService iCustomerService;
-
-
     @GetMapping("/select")
     @ApiOperation("根据客户名称查询客户信息")
     public Result<List<Customer>> selectByCustomerName(@RequestParam(value = "customerName",required = false) String customerName){
         List<Customer> customerList = iCustomerService.selectCustomerByCustomerName(customerName);
         return new Result<List<Customer>>().success().put(customerList);
     }
-
-
 }

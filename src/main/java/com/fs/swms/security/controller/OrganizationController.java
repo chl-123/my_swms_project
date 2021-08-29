@@ -4,11 +4,10 @@ package com.fs.swms.security.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fs.swms.common.annotation.log.AroundLog;
-import com.fs.swms.common.base.BusinessException;
 import com.fs.swms.common.base.PageResult;
 import com.fs.swms.common.base.Result;
+import com.fs.swms.common.controller.BaseController;
 import com.fs.swms.common.entity.MyFile;
-import com.fs.swms.common.util.Utils;
 import com.fs.swms.security.dto.CreateOrganization;
 import com.fs.swms.security.dto.QueryOrganization;
 import com.fs.swms.security.dto.UpdateOrganization;
@@ -23,8 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.beans.BeanCopier;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
@@ -38,7 +35,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/organization")
 @Api(value = "OrganizationController|组织机构相关的前端控制器")
-public class OrganizationController {
+public class OrganizationController extends BaseController {
 
     @Autowired
     private IOrganizationService organizationService;
@@ -62,7 +59,7 @@ public class OrganizationController {
      * 添加组织
      */
     @PostMapping("/create")
-//    @RequiresRoles("SYSADMIN")
+    @RequiresRoles("SYSADMIN")
     @ApiOperation(value = "添加组织机构")
     @AroundLog(name = "添加组织机构")
     public Result<Organization> create(@RequestBody CreateOrganization org) {
@@ -148,16 +145,7 @@ public class OrganizationController {
             return new Result<Boolean>().success().put(false);
         }
     }
-    @GetMapping("/download/template")
-    @ApiOperation(value = "文件下载")
-    @ApiImplicitParam(paramType = "query", name = "fileName", value = "文件名", required = true, dataType = "String")
-    public void download(@RequestParam("fileName") String fileName, HttpServletRequest request, HttpServletResponse response)  {
-        try{
-            Utils.downloadFile(fileName,request,response);
-        }catch (Exception e){
-            throw new BusinessException("文件下载失败");
-        }
-    }
+
     @PostMapping("/batch")
     @ApiOperation(value = "批量添加部门信息")
     @AroundLog(name = "批量添加部门信息")
@@ -186,6 +174,5 @@ public class OrganizationController {
         PageResult<Organization> pageResult = new PageResult<Organization>(pageOrganization.getTotal(), pageOrganization.getRecords());
         return pageResult;
     }
-
 
 }

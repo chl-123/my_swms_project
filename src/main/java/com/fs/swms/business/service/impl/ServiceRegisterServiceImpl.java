@@ -9,6 +9,7 @@ import com.fs.swms.business.dto.*;
 import com.fs.swms.business.entity.ApprovalSheet;
 import com.fs.swms.business.entity.ProblemHandle;
 import com.fs.swms.business.entity.ServiceRegister;
+import com.fs.swms.business.mapper.ProblemHandleMapper;
 import com.fs.swms.business.mapper.ServiceRegisterMapper;
 import com.fs.swms.business.service.IApprovalSheetService;
 import com.fs.swms.business.service.IProblemHandleService;
@@ -19,10 +20,11 @@ import com.fs.swms.common.util.Utils;
 import com.fs.swms.mainData.entity.ProblemType;
 import com.fs.swms.mainData.service.IProblemTypeService;
 import com.fs.swms.security.entity.User;
-import com.fs.swms.security.entity.UserRole;
 import com.fs.swms.security.service.IRoleService;
 import com.fs.swms.security.service.IUserRoleService;
 import com.fs.swms.security.service.IUserService;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -50,7 +52,10 @@ public class ServiceRegisterServiceImpl extends ServiceImpl<ServiceRegisterMappe
     private IUserRoleService iUserRoleService;
     @Autowired
     private IRoleService iRoleService;
-
+    @Autowired
+    private ServiceRegisterMapper serviceRegisterMapper;
+    @Autowired
+            private ProblemHandleMapper problemHandleMapper;
     String dataPath="ServiceRegister/";
     @Autowired
     private IProblemHandleService iProblemHandleService;
@@ -102,14 +107,19 @@ public class ServiceRegisterServiceImpl extends ServiceImpl<ServiceRegisterMappe
     public boolean updateServiceRegister(UpdateServiceRegister serviceRegister, List<MultipartFile> files) {
         if (
                 serviceRegister.getServiceNo() == null || serviceRegister.getServiceType() == null ||
-                        serviceRegister.getServiceLevel() == null||serviceRegister.getProblemId()==null||
-                        serviceRegister.getIsShangxiu()==null||serviceRegister.getId()==null
+                serviceRegister.getServiceLevel() == null||serviceRegister.getProblemId()==null||
+                serviceRegister.getIsShangxiu()==null||serviceRegister.getId()==null
         ) {
             throw new BusinessException("必要数据不能为空");
         }
+        ServiceRegister serviceRegisterInfo = this.getById(serviceRegister.getId());
+
+        if (serviceRegisterInfo == null) {
+            throw new BusinessException("查询不到该信息");
+        }
         boolean result=false;
         QueryWrapper<ServiceRegister> serviceRegisterQueryWrapper=new QueryWrapper<>();
-        serviceRegisterQueryWrapper.ne("ID",serviceRegister.getId()).eq("SERVICE_NO",serviceRegister.getServiceNo());
+        serviceRegisterQueryWrapper.ne("ID",serviceRegister.getId()).and(e->e.eq("SERVICE_NO",serviceRegister.getServiceNo()));
         List<ServiceRegister> serviceRegisterList = this.list(serviceRegisterQueryWrapper);
         if (!CollectionUtils.isEmpty(serviceRegisterList)) {
             throw new BusinessException("该服务编号已存在");
@@ -122,9 +132,11 @@ public class ServiceRegisterServiceImpl extends ServiceImpl<ServiceRegisterMappe
 
 
         ServiceRegister serviceRegisterEntity=new ServiceRegister();
+        BeanUtils.copyProperties(serviceRegister,serviceRegisterEntity);
+
         UpdateWrapper<ServiceRegister> updateWrapper=new UpdateWrapper<>();
 
-        ServiceRegister serviceRegisterInfo = this.getById(serviceRegister.getId());
+
         String fileList=serviceRegisterInfo.getFilenames();
 
         String registerBaseFiles = serviceRegister.getBaseFiles();
@@ -186,7 +198,7 @@ public class ServiceRegisterServiceImpl extends ServiceImpl<ServiceRegisterMappe
                 updateWrapper.set("FILENAMES","");
             }
         }
-        if (serviceRegisterInfo.getApprovalStatus().equals("2")) {
+        /*if (serviceRegisterInfo.getApprovalStatus().equals("2")) {
             updateWrapper.set("APPROVAER","");
 //            updateWrapper.set("APPROVAL_RESULT","0");
             updateWrapper.set("APPROVAL_COMMENTS","");
@@ -199,7 +211,7 @@ public class ServiceRegisterServiceImpl extends ServiceImpl<ServiceRegisterMappe
             updateWrapper.set("LEADER_APPROVAL_COMMENTS","");
             updateWrapper.set("LEADER_APPROVAL_DATE","");
             updateWrapper.set("LEADER_APPROVAL_STATUS","0");
-        }
+        }*/
         serviceRegisterEntity.setChildSetp("2");
         updateWrapper.eq("ID",serviceRegister.getId());
 
@@ -207,16 +219,22 @@ public class ServiceRegisterServiceImpl extends ServiceImpl<ServiceRegisterMappe
         return result;
     }
 
-    @Override
-    public Page<ServiceRegister> selectServiceRegisterAll(Page<ServiceRegister> page) {
-        return null;
-    }
+
 
     @Override
     public Page<ServiceRegisterInfo> selectRegisterList(Page<ServiceRegisterInfo> page, QueryServiceRegister serviceRegister,User user) {
-        QueryWrapper<UserRole> userRoleQueryWrapper=new QueryWrapper<>();
-//        userRoleQueryWrapper.eq("");
-        return null;
+        Subject subject = SecurityUtils.getSubject();
+        boolean hasRole = subject.hasRole("FWKKZ");
+        if (hasRole) {
+            serviceRegister.setApprovalStatus("1");
+            serviceRegister.setSetp("1");
+        }else {
+            serviceRegister.setChildSetp("1");
+            serviceRegister.setExecutor(user.getId());
+        }
+        Page<ServiceRegisterInfo> serviceRegisterInfoPage = serviceRegisterMapper.selectServiceRegisterList(page, serviceRegister);
+
+        return serviceRegisterInfoPage;
     }
 
     @Override
@@ -289,101 +307,35 @@ public class ServiceRegisterServiceImpl extends ServiceImpl<ServiceRegisterMappe
     }
 
 
-
-
-
     @Override
-    public boolean Approval(UpdateServiceRegister updateServiceRegister, User user) {
-        if (updateServiceRegister.getApprovalComments()==null) {
-            throw new BusinessException("审批意见不能为空");
+    public Page<ServiceRegisterInfo> selectRegListForManagement(Page<ServiceRegisterInfo> page, QueryServiceRegisterManagement serviceRegister, User user) {
+        if (serviceRegister.getChildSetp()==null) {
+            serviceRegister.setChildSetp("2");
         }
-        QueryWrapper<ServiceRegister> queryWrapper=new QueryWrapper<>();
-        queryWrapper.eq("ID",updateServiceRegister.getId());
-        List<ServiceRegister> list = this.list(queryWrapper);
-        if (CollectionUtils.isEmpty(list)) {
-            throw new BusinessException("根据当前ID查询不到服务登记表");
-        }
-        ServiceRegister serviceRegisterEntity=new ServiceRegister();
-        BeanUtils.copyProperties(updateServiceRegister,serviceRegisterEntity);
-        serviceRegisterEntity.setApprovaer(user.getId());
-//        serviceRegisterEntity.setApprovalStatus("1");
-//        approvalSheet.setApprovalResult("1");
-        serviceRegisterEntity.setOperator(user.getId());
-        serviceRegisterEntity.setApprovalDate(new Date());
-        serviceRegisterEntity.setUpdateTime(new Date());
-        queryWrapper.eq("ID",updateServiceRegister.getId());
-        boolean result = this.update(serviceRegisterEntity, queryWrapper);
-        return result;
-    }
-
-    @Override
-    public boolean leaderApproval(UpdateServiceRegister updateServiceRegister, User user) {
-        if (updateServiceRegister.getApprovalComments()==null) {
-            throw new BusinessException("审批意见不能为空");
-        }
-        QueryWrapper<ServiceRegister> queryWrapper=new QueryWrapper<>();
-        queryWrapper.eq("ID",updateServiceRegister.getId());
-        List<ServiceRegister> list = this.list(queryWrapper);
-        if (CollectionUtils.isEmpty(list)) {
-            throw new BusinessException("根据当前ID查询不到服务登记表");
-        }
-
-        UpdateWrapper<ServiceRegister> updateWrapper=new UpdateWrapper<>();
-        ServiceRegister serviceRegisterEntity=new ServiceRegister();
-        BeanUtils.copyProperties(updateServiceRegister,serviceRegisterEntity);
-        if (updateServiceRegister.getLeaderApprovalStatus().equals("2")) {
-            updateWrapper.set("APPROVAER","");
-//            updateWrapper.set("APPROVAL_RESULT","0");
-            updateWrapper.set("APPROVAL_COMMENTS","");
-            updateWrapper.set("APPROVAL_DATE","");
-            updateWrapper.set("APPROVAL_STATUS","0");
-        }
-        serviceRegisterEntity.setLeaderApprovaer(user.getId());
-//        serviceRegisterEntity.setApprovalStatus("1");
-//        approvalSheet.setApprovalResult("1");
-        serviceRegisterEntity.setOperator(user.getId());
-        serviceRegisterEntity.setApprovalDate(new Date());
-        serviceRegisterEntity.setUpdateTime(new Date());
-        updateWrapper.eq("ID",updateServiceRegister.getId());
-        boolean result = this.update(serviceRegisterEntity, queryWrapper);
-        return result;
-    }
-
-    @Override
-    public boolean distribution(List<CreateProblemHandle> problemHandles) {
-        if (CollectionUtils.isEmpty(problemHandles)) {
-            throw new BusinessException("责任部门不能为空");
-        }
-        Collection<ProblemHandle> problemHandleList=new ArrayList<>();
-        for(CreateProblemHandle createProblemHandle:problemHandles){
-            ProblemHandle problemHandle=new ProblemHandle();
-            BeanUtils.copyProperties(createProblemHandle,problemHandle);
-            problemHandle.setChildSetp("0");
-            problemHandleList.add(problemHandle);
-        }
-        boolean result = iProblemHandleService.saveBatch(problemHandleList);
-
-        return result;
+        serviceRegister.setExecutor(user.getId());
+        Page<ServiceRegisterInfo> serviceRegisterInfoPage = serviceRegisterMapper.selectRegisterListForManagement(page, serviceRegister);
+        return serviceRegisterInfoPage;
     }
 
 
 
+
     @Override
-    public boolean executor(ServiceRegisterExecutor executor,User user) {
+    public boolean transfer(ServiceRegisterTransfer transfer, User user) {
         boolean result=false;
         ServiceRegister serviceRegister=new ServiceRegister();
-        if (executor.getApprovalSheetId()==null||executor.getExecutor()==null) {
+        if (transfer.getApprovalSheetId()==null||transfer.getExecutor()==null) {
             throw new BusinessException("数据不能为空");
         }
-        User executorUser = iUserService.getById(executor.getExecutor());
+        User executorUser = iUserService.getById(transfer.getExecutor());
         if (executorUser == null) {
             throw new BusinessException("该转办人在系统中不存在");
         }
-        ApprovalSheet approvalSheet = iApprovalSheetService.getById(executor.getApprovalSheetId());
+        ApprovalSheet approvalSheet = iApprovalSheetService.getById(transfer.getApprovalSheetId());
         if (approvalSheet == null) {
             throw new BusinessException("该审批单在系统中不存在");
         }
-        BeanUtils.copyProperties(executor,serviceRegister);
+        BeanUtils.copyProperties(transfer,serviceRegister);
         serviceRegister.setChildSetp("1");
         serviceRegister.setOperator(user.getId());
         serviceRegister.setUpdateTime(new Date());
@@ -391,9 +343,219 @@ public class ServiceRegisterServiceImpl extends ServiceImpl<ServiceRegisterMappe
 
         UpdateWrapper<ApprovalSheet> updateWrapper=new UpdateWrapper<>();
         updateWrapper.set("SETP","2");
-        updateWrapper.eq("ID",executor.getApprovalSheetId());
+        updateWrapper.eq("ID",transfer.getApprovalSheetId());
+        updateWrapper.set("UPDATE_TIME",new Date());
+        updateWrapper.set("OPERATOR",user.getId());
         result=iApprovalSheetService.update(updateWrapper);
 
         return result;
     }
+    @Override
+    public boolean Approval(UpdateServiceRegister serviceRegister, User user) {
+
+        if (serviceRegister.getId()==null) {
+            throw new BusinessException("当前ID不能为空");
+        }
+        ServiceRegister serviceRegisterGetById = this.getById(serviceRegister.getId());
+        if (serviceRegisterGetById == null) {
+            throw new BusinessException("查询不到该服务登记表");
+        }
+        Subject subject = SecurityUtils.getSubject();
+        UpdateWrapper<ServiceRegister> updateWrapper =new UpdateWrapper<>();
+        if (subject.hasRole("FWKKZ")) {
+            if (
+                serviceRegister.getApprovalComments()==null||serviceRegister.getApprovalComments().equals("") ||
+                serviceRegister.getApprovalStatus()==null||serviceRegister.getApprovalStatus().equals("")
+            ) {
+                throw new BusinessException("审批意见或审批结果不能为空");
+            }
+            updateWrapper.set("APPROVAER",user.getId());
+            updateWrapper.set("APPROVAL_COMMENTS",serviceRegister.getApprovalComments());
+            updateWrapper.set("APPROVAL_DATE",new Date());
+            updateWrapper.set("APPROVAL_STATUS",serviceRegister.getApprovalStatus());
+            updateWrapper.set("CHILD_SETP","3");
+            updateWrapper.set("UPDATE_TIME",new Date());
+            updateWrapper.set("OPERATOR",user.getId());
+
+
+        }
+        else if (subject.hasRole("FWKLD")) {
+            if (serviceRegister.getLeaderApprovalStatus()==null||serviceRegister.getLeaderApprovalComments().equals("")
+                    ||serviceRegister.getLeaderApprovalComments()==null||serviceRegister.getLeaderApprovalStatus().equals("")) {
+                throw new BusinessException("审批意见或审批结果不能为空");
+            }
+
+            updateWrapper.set("LEADER_APPROVAER",user.getId());
+            updateWrapper.set("LEADER_APPROVAL_COMMENTS",serviceRegister.getLeaderApprovalComments());
+            updateWrapper.set("LEADER_APPROVAL_DATE",new Date());
+            updateWrapper.set("LEADER_APPROVAL_STATUS",serviceRegister.getLeaderApprovalStatus());
+            updateWrapper.set("CHILD_SETP","4");
+            updateWrapper.set("UPDATE_TIME",new Date());
+            updateWrapper.set("OPERATOR",user.getId());
+        }
+        else {
+            throw new BusinessException("您没有权限审批");
+        }
+        updateWrapper.eq("ID",serviceRegister.getId());
+        boolean result = this.update( updateWrapper);
+        return result;
+    }
+
+    @Override
+    public boolean cancelApproval(String serviceRegisterId, User user) {
+        if (serviceRegisterId==null) {
+            throw new BusinessException("当前ID不能为空");
+        }
+        ServiceRegister serviceRegister = this.getById(serviceRegisterId);
+        if (serviceRegister == null) {
+            throw new BusinessException("查询不到该服务登记表");
+        }
+        Subject subject = SecurityUtils.getSubject();
+        UpdateWrapper<ServiceRegister> updateWrapper =new UpdateWrapper<>();
+        if (subject.hasRole("FWKKZ")) {
+            if("3".equals(serviceRegister.getChildSetp())) {
+                updateWrapper.set("APPROVAER", "");
+                updateWrapper.set("APPROVAL_COMMENTS", "");
+                updateWrapper.set("APPROVAL_DATE", "");
+                updateWrapper.set("APPROVAL_STATUS", "0");
+                updateWrapper.set("CHILD_SETP", "2");
+                updateWrapper.set("UPDATE_TIME", new Date());
+                updateWrapper.set("OPERATOR", user.getId());
+            }else {
+                throw new BusinessException("无法取消审批");
+            }
+        }
+        else if (subject.hasRole("FWKLD")) {
+            if("4".equals(serviceRegister.getChildSetp())) {
+                updateWrapper.set("LEADER_APPROVAER", "");
+                updateWrapper.set("LEADER_APPROVAL_COMMENTS", "");
+                updateWrapper.set("LEADER_APPROVAL_DATE", "");
+                updateWrapper.set("LEADER_APPROVAL_STATUS", "0");
+                updateWrapper.set("CHILD_SETP", "3");
+                updateWrapper.set("UPDATE_TIME", new Date());
+                updateWrapper.set("OPERATOR", user.getId());
+            }else {
+                throw new BusinessException("无法取消审批");
+            }
+        }
+        else {
+            throw new BusinessException("您没有权限取消审批");
+        }
+        updateWrapper.eq("ID",serviceRegisterId);
+        boolean result = this.update( updateWrapper);
+        return result;
+    }
+    @Override
+    public boolean distribution(Distribution problemHandles, User user) {
+        boolean result=false;
+        if (CollectionUtils.isEmpty(problemHandles.getDeptNoList())) {
+            throw new BusinessException("责任部门不能为空");
+        }
+        if (problemHandles.getApprovalSheetId()==null) {
+            throw new BusinessException("审批单ID不能为空");
+        }
+        ApprovalSheet approvalSheet = iApprovalSheetService.getById(problemHandles.getApprovalSheetId());
+        if (approvalSheet == null) {
+            throw new BusinessException("该审批单不存在");
+        }
+        List<ProblemHandle> problemHandleList=new ArrayList<>();
+        for(String depNo :problemHandles.getDeptNoList()){
+            ProblemHandle problemHandle=new ProblemHandle();
+            problemHandle.setApprovalSheetId(problemHandles.getApprovalSheetId());
+            problemHandle.setDeptNo(depNo);
+            problemHandle.setChildSetp("0");
+            problemHandle.setUpdateTime(new Date());
+            problemHandle.setOperator(user.getId());
+            problemHandleList.add(problemHandle);
+        }
+        result= iProblemHandleService.saveBatch(problemHandleList);
+        UpdateWrapper<ServiceRegister> updateWrapper=new UpdateWrapper<>();
+        updateWrapper.set("CHILD_SETP","5");
+        updateWrapper.eq("APPROVAL_SHEET_ID",problemHandles.getApprovalSheetId());
+        updateWrapper.set("UPDATE_TIME",new Date());
+        updateWrapper.set("OPERATOR",user.getId());
+        result=this.update(updateWrapper);
+        return result;
+    }
+    public boolean cancelDistribution(String approvalSheetId,User user){
+        if (approvalSheetId == null||approvalSheetId.equals("")) {
+            throw new BusinessException("审批单ID不能为空");
+
+        }
+        boolean result=false;
+        QueryWrapper<ProblemHandle> queryWrapper=new QueryWrapper<>();
+        queryWrapper.ne("CHILD_SETP","0").eq("APPROVAL_SHEET_ID",approvalSheetId);
+        List<ProblemHandle> problemHandleList = iProblemHandleService.list(queryWrapper);
+        if (!CollectionUtils.isEmpty(problemHandleList)) {
+            throw new BusinessException("下发部门已对问题进行处理，不能取消分发操作!");
+        }
+        UpdateWrapper<ProblemHandle> problemHandleUpdateWrapper=new UpdateWrapper<>();
+        problemHandleUpdateWrapper.eq("APPROVAL_SHEET_ID",approvalSheetId);
+        problemHandleUpdateWrapper.set("DEL_FLAG","1");
+        problemHandleUpdateWrapper.set("UPDATE_TIME",new Date());
+        problemHandleUpdateWrapper.set("OPERATOR",user.getId());
+        result=iProblemHandleService.update(problemHandleUpdateWrapper);
+        UpdateWrapper<ServiceRegister> updateWrapper=new UpdateWrapper<>();
+        updateWrapper.set("CHILD_SETP","4");
+        updateWrapper.eq("APPROVAL_SHEET_ID",approvalSheetId);
+        updateWrapper.set("UPDATE_TIME",new Date());
+        updateWrapper.set("OPERATOR",user.getId());
+        result=this.update(updateWrapper);
+        return result;
+
+    }
+
+    @Override
+    public boolean deleteProblemHandle(String approvalSheetId, String problemHandleId, User user) {
+        boolean result=false;
+        QueryWrapper<ProblemHandle> queryWrapper=new QueryWrapper<>();
+        queryWrapper.eq("APPROVAL_SHEET_ID",approvalSheetId);
+        List<ProblemHandle> problemHandleList = iProblemHandleService.list(queryWrapper);
+
+        UpdateWrapper<ProblemHandle> problemHandleUpdateWrapper=new UpdateWrapper<>();
+        problemHandleUpdateWrapper.eq("ID",problemHandleId);
+        problemHandleUpdateWrapper.set("DEL_FLAG","1");
+        problemHandleUpdateWrapper.set("UPDATE_TIME",new Date());
+        problemHandleUpdateWrapper.set("OPERATOR",user.getId());
+        result=iProblemHandleService.update(problemHandleUpdateWrapper);
+
+        if (problemHandleList.size()==1) {
+            UpdateWrapper<ServiceRegister> updateWrapper=new UpdateWrapper<>();
+            updateWrapper.set("CHILD_SETP","4");
+            updateWrapper.eq("APPROVAL_SHEET_ID",approvalSheetId);
+            updateWrapper.set("UPDATE_TIME",new Date());
+            updateWrapper.set("OPERATOR",user.getId());
+            result=this.update(updateWrapper);
+        }
+        return result;
+    }
+
+    @Override
+    public Page<ServiceRegisterInfo> selectRegListForApproval(Page<ServiceRegisterInfo> page, QueryServiceRegisterManagement serviceRegister) {
+
+        Page<ServiceRegisterInfo> serviceRegisterInfoPage = serviceRegisterMapper.selectRegisterListForManagement(page, serviceRegister);
+        return serviceRegisterInfoPage;
+
+    }
+
+    @Override
+    public Page<ServiceRegisterInfo> selectRegListForDistribution(Page<ServiceRegisterInfo> page, QueryServiceRegisterManagement serviceRegister) {
+        if (serviceRegister.getChildSetp()==null) {
+            serviceRegister.setChildSetp1("4");
+            serviceRegister.setChildSetp2("5");
+        }
+        Page<ServiceRegisterInfo> serviceRegisterInfoPage = serviceRegisterMapper.selectListForDistribution(page, serviceRegister);
+
+        return serviceRegisterInfoPage;
+    }
+    @Override
+    public Page<ProblemHandleInfo> selectRegListForDistributionManagement(Page<ProblemHandleInfo> page, QueryProblemHandle problemHandle) {
+        if (problemHandle.getChildSetp()==null) {
+            problemHandle.setChildSetp("0");
+        }
+        Page<ProblemHandleInfo> serviceRegisterInfoPage = problemHandleMapper.selectProblemHandleForManagementList(page,problemHandle);
+
+        return serviceRegisterInfoPage;
+    }
+
 }

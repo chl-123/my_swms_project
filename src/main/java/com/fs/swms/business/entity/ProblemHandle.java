@@ -32,8 +32,8 @@ public class ProblemHandle extends BaseEntity {
     private String id;
 
     @ApiModelProperty(value = "服务登记表ID")
-    @TableField("SERVICE_RED_ID")
-    private String serviceRedId;
+    @TableField("APPROVAL_SHEET_ID")
+    private String approvalSheetId;
 
     @ApiModelProperty(value = "责任部门编号")
     @TableField("DEPT_NO")

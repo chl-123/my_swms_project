@@ -25,6 +25,8 @@ import com.fs.swms.mainData.service.IProductService;
 import com.fs.swms.mainData.service.IWindfarmService;
 import com.fs.swms.security.entity.User;
 import com.fs.swms.security.service.IUserService;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -114,7 +116,11 @@ public class ApprovalSheetServiceImpl extends ServiceImpl<ApprovalSheetMapper, A
 
 
     @Override
-    public Page<ApprovalSheetInfo> selectApprovalSheetList(Page<ApprovalSheetInfo> page, QueryApprovalSheet approvalSheet) {
+    public Page<ApprovalSheetInfo> selectApprovalSheetList(Page<ApprovalSheetInfo> page, QueryApprovalSheet approvalSheet,User user) {
+        Subject subject = SecurityUtils.getSubject();
+        if (!subject.hasRole("SYSADMIN")) {
+            approvalSheet.setCreator(user.getId());
+        }
         Page<ApprovalSheetInfo> approvalSheetPage = approvalSheetMapper.selectApprovalSheetList(page, approvalSheet);
         return approvalSheetPage;
     }

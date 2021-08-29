@@ -29,25 +29,9 @@ public class UpdateUser implements Serializable
      */
     private String userAccount;
     /**
-     * 昵称
-     */
-    private String userNickName;
-    /**
      * 姓名
      */
     private String userName;
-    /**
-     * 1 : 男，0 : 女
-     */
-    private String userSex;
-    /**
-     * 邮箱
-     */
-    private String userEmail;
-    /**
-     * 电话
-     */
-    private String userMobile;
     /**
      * 密码
      */

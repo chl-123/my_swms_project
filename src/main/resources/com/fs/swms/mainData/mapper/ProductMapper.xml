@@ -33,31 +33,32 @@
     </sql>
     <select id="selectProductList" resultType="com.fs.swms.mainData.dto.ProductInfo">
         SELECT
-            P.ID AS id,
-            P.CUSTOMER_ID   AS customerId,
-            C.CUSTOMER_NAME AS customerName,
-            P.FIGURE_NO AS figureNo,
-            P.BOX_NO    AS boxNo,
-            P.POWER       AS power,
-            P.SPEED_RATIO AS speedRatio,
-            P.ASSEMBLY_DATE    AS assemblyDate,
-            P.MANUFACTURE_DATE AS manufactureDate,
-            P.FILES       AS files,
-            P.CONTRACT_NO AS contractNo,
-            P.JOB_NO      AS jobNo,
-            P.WINDFARM_ID AS windfarmId,
-            W.WINDFARM    AS windfarm,
-            P.FAN_NO      AS fanNo,
-            P.CONN_DATE   AS connDate,
-            P.EXPIRE_DATE AS expireDate,
-            P.CREATE_TIME AS createTime,
-            P.CREATOR     AS creator,
-            P.UPDATE_TIME AS updateTime,
-            P.OPERATOR    AS operator
-            from T_BD_PRODUCT P
-            LEFT JOIN T_BD_CUSTOMER C ON P.CUSTOMER_ID=C.ID AND C.DEL_FLAG=0
-            LEFT JOIN T_BD_WINDFARM W ON P.WINDFARM_ID=W.ID AND W.DEL_FLAG=0
-        WHERE P.DEL_FLAG=0 AND W.DEL_FLAG=0 AND C.DEL_FLAG=0
+        P.ID AS id,
+        P.CUSTOMER_ID   AS customerId,
+        C.CUSTOMER_NAME AS customerName,
+        P.FIGURE_NO AS figureNo,
+        P.BOX_NO    AS boxNo,
+        P.POWER       AS power,
+        P.SPEED_RATIO AS speedRatio,
+        P.ASSEMBLY_DATE    AS assemblyDate,
+        P.MANUFACTURE_DATE AS manufactureDate,
+        P.FILES       AS files,
+        P.CONTRACT_NO AS contractNo,
+        P.JOB_NO      AS jobNo,
+        P.WINDFARM_ID AS windfarmId,
+        W.WINDFARM    AS windfarm,
+        P.FAN_NO      AS fanNo,
+        P.CONN_DATE   AS connDate,
+        P.EXPIRE_DATE AS expireDate,
+        P.CREATE_TIME AS createTime,
+        P.REMARKS     AS remarks,
+        P.CREATOR     AS creator,
+        P.UPDATE_TIME AS updateTime,
+        P.OPERATOR    AS operator
+        from T_BD_PRODUCT P
+        LEFT JOIN T_BD_CUSTOMER C ON P.CUSTOMER_ID=C.ID AND C.DEL_FLAG=0
+        LEFT JOIN T_BD_WINDFARM W ON P.WINDFARM_ID=W.ID AND W.DEL_FLAG=0
+        WHERE P.DEL_FLAG=0
         <trim prefix="AND (" suffix=")" prefixOverrides="AND">
             <if test="product.customerName != null and product.customerName != ''">
                 AND C.CUSTOMER_NAME like concat(concat('%', #{product.customerName}), '%')
@@ -70,10 +71,10 @@
             </if>
 
             <if test="product.assemblyDateStart != null and product.assemblyDateEnd != null ">
-                AND P.ASSEMBLY_DATE BETWEEN #{product.assemblyDateStart} and #{product.assemblyDateEnd}
+                AND P.ASSEMBLY_DATE <![CDATA[>=]]> #{product.assemblyDateStart} and  P.ASSEMBLY_DATE <![CDATA[ <  ]]> (#{product.assemblyDateEnd}+1)
             </if>
             <if test="product.manufactureDateStart != null and product.manufactureDateEnd != null ">
-                AND P.MANUFACTURE_DATE BETWEEN #{product.manufactureDateStart} and #{product.manufactureDateEnd}
+                AND P.MANUFACTURE_DATE <![CDATA[>=]]> #{product.manufactureDateStart} and  P.MANUFACTURE_DATE <![CDATA[ <  ]]> (#{product.manufactureDateEnd}+1)
             </if>
 
             <if test="product.windfarm != null and product.windfarm != ''">
@@ -83,12 +84,13 @@
                 AND P.FAN_NO like concat(concat('%', #{product.fanNo}), '%')
             </if>
             <if test="product.connDateStart != null and product.connDateEnd != null ">
-                AND P.CONN_DATE BETWEEN #{product.connDateStart} and #{product.connDateEnd}
+                AND P.CONN_DATE <![CDATA[>=]]> #{product.connDateStart} and P.CONN_DATE <![CDATA[ <  ]]> (#{product.connDateEnd}+1)
             </if>
             <if test="product.expireDateStart != null and product.expireDateEnd != null ">
-                AND P.EXPIRE_DATE BETWEEN #{product.expireDateStart} and #{product.expireDateEnd}
+                AND P.EXPIRE_DATE <![CDATA[>=]]> #{product.expireDateStart} and P.EXPIRE_DATE <![CDATA[ <  ]]> (#{product.expireDateEnd}+1)
             </if>
         </trim>
         ORDER BY P.UPDATE_TIME DESC
     </select>
 </mapper>
+

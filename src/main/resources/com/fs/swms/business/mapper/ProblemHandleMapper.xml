@@ -10,7 +10,7 @@
         <result column="UPDATE_TIME" property="updateTime" />
         <result column="OPERATOR" property="operator" />
         <result column="DEL_FLAG" property="delFlag" />
-        <result column="SERVICE_RED_ID" property="serviceRedId" />
+        <result column="APPROVAL_SHEET_ID" property="approvalSheetId" />
         <result column="DEPT_NO" property="deptNo" />
         <result column="EXECUTOR" property="executor" />
         <result column="PROBLEM_ID" property="problemId" />
@@ -26,70 +26,103 @@
         UPDATE_TIME,
         OPERATOR,
         DEL_FLAG,
-        ID, SERVICE_RED_ID, DEPT_NO, EXECUTOR, PROBLEM_ID, PROCESS_SCHEME, FILENAMES, CHILD_SETP
+        ID, APPROVAL_SHEET_ID, DEPT_NO, EXECUTOR, PROBLEM_ID, PROCESS_SCHEME, FILENAMES, CHILD_SETP
     </sql>
-<!--    <select id="selectProblemHandList" resultType="com.fs.swms.business.dto.ProblemHandInfo" >-->
-<!--        SELECT-->
-<!--        PH.ID   AS id,-->
-<!--        S.SERVICE_NO AS serviceNo,-->
-<!--        PH.SERVICE_RED_ID     AS serviceRedId,-->
-<!--        P.FIGURE_NO     AS figureNo,-->
-<!--        P.BOX_NO        AS boxNo,-->
-<!--        PH.CHILD_SETP     AS  childSetp,-->
-<!--        PT.TYPE_NAME     AS typeName,-->
-<!--        P.MANUFACTURE_DATE AS manufactureDate,-->
-<!--        P.EXPIRE_DATE   AS expireDate,-->
-<!--        P.JOB_NO AS jobNo,-->
-<!--        S.REPAIRMAN   AS repairman,-->
-<!--        PH.PROCESS_SCHEME      AS  processScheme,-->
-<!--        PH.CREATE_TIME        AS     createTime,  &lt;!&ndash; 这里是处理日期，用的是现场问题处理表的创建时间字段 &ndash;&gt;-->
-<!--        P.CUSTOMER_ID   AS customerId,-->
-<!--        C.CUSTOMER_NAME AS customerName,-->
-<!--        A.PROBLEM_DESC AS  problemDesc,   &lt;!&ndash;这里是故障描述，用的是审批单表的问题描述字段&ndash;&gt;-->
-<!--        S.DISPOSAL_MEASURES  AS disposalMeasures,  &lt;!&ndash;这里是措施，用的是服务登记表的处理措施字段 &ndash;&gt;-->
-<!--        PH.DEPT_NO          AS  deptNo,-->
-<!--        PH.EXECUTOR         AS  executor,-->
-<!--        PH.PROBLEM_ID              AS  problemId,-->
-<!--        PH.FILENAMES           AS  filenames ,-->
-<!--        PH.CREATOR  AS     creator,-->
-<!--        PH.UPDATE_TIME AS updateTime,-->
-<!--        PH.OPERATOR AS    operator,-->
-<!--        PH.DEL_FLAG          AS   delFlag-->
-<!--        FROM T_MM_PROBLEM_HANDLE PH-->
-<!--        LEFT JOIN T_MM_SERVICE_REGISTER S ON S.ID=PH.SERVICE_RED_ID AND S.DEL_FLAG=0-->
-<!--        LEFT JOIN T_MM_APPROVAL_SHEET A ON A.ID=S.APPROVAL_SHEET_ID AND A.DEL_FLAG=0-->
-<!--        LEFT JOIN T_BD_PROBLEM_TYPE PT ON PT.ID=S.PROBLEM_ID AND PT.DEL_FLAG = 0-->
-<!--        LEFT JOIN T_BD_PRODUCT P ON P.ID=A.PRODUCT_ID  AND P.DEL_FLAG=0-->
-<!--        LEFT JOIN T_BD_CUSTOMER C ON C.ID=P.CUSTOMER_ID AND C.DEL_FLAG=0-->
-<!--        LEFT JOIN T_BD_PROBLEM_TYPE PT ON PT.ID = PH.PROBLEM_ID AND PT.DEL_FLAG = 0-->
-<!--        WHERE PH.DEL_FLAG = 0-->
-<!--        <trim prefix="AND (" suffix=")" prefixOverrides="AND">-->
-<!--            <if test="problemHand.serviceNo != null and problemHand.serviceNo != ''">-->
-<!--                AND S.SERVICE_NO like concat(concat('%', #{problemHand.serviceNo}), '%')-->
-<!--            </if>-->
-<!--            <if test="problemHand.customerName != null and problemHand.customerName != ''">-->
-<!--                AND C.CUSTOMER_NAME like concat(concat('%', #{problemHand.customerName}), '%')-->
-<!--            </if>-->
-<!--            <if test="problemHand.customerName != null and problemHand.customerName != ''">-->
-<!--                AND C.CUSTOMER_NAME like concat(concat('%', #{problemHand.customerName}), '%')-->
-<!--            </if>-->
-<!--            <if test="problemHand.figureNo != null and problemHand.figureNo != ''">-->
-<!--                AND P.FIGURE_NO like concat(concat('%', #{problemHand.figureNo}), '%')-->
-<!--            </if>-->
-<!--            <if test="problemHand.boxNo != null and problemHand.boxNo != ''">-->
-<!--                AND P.BOX_NO like concat(concat('%', #{problemHand.boxNo}), '%')-->
-<!--            </if>-->
-<!--            <if test="problemHand.contractNo != null and problemHand.contractNo != ''">-->
-<!--                AND P.CONTRACT_NO like concat(concat('%', #{problemHand.contractNo}), '%')-->
-<!--            </if>-->
-<!--            <if test="problemHand.jobNo != null and problemHand.jobNo != ''">-->
-<!--                AND P.JOB_NO like concat(concat('%', #{problemHand.jobNo}), '%')-->
-<!--            </if>-->
-<!--            <if test="problemHand.manufactureDateStart != null and problemHand.manufactureDateEnd != null ">-->
-<!--                AND P.MANUFACTURE_DATE BETWEEN #{approvalSheet.manufactureDateStart} and #{approvalSheet.manufactureDateEnd}-->
-<!--            </if>-->
-<!--        </trim>-->
-<!--        ORDER BY PH.UPDATE_TIME DESC-->
-<!--    </select>-->
+    <select id="selectProblemHandleForManagementList" resultType="com.fs.swms.business.dto.ProblemHandleInfo" >
+        SELECT
+        S.ID   AS id,
+        S.APPROVAL_SHEET_ID  AS approvalSheetId,
+        S.SERVICE_NO AS serviceNo,
+        P.CUSTOMER_ID   AS customerId,
+        C.CUSTOMER_NAME AS customerName,
+        P.FIGURE_NO     AS figureNo,
+        P.BOX_NO        AS boxNo,
+        S.SERVICE_TYPE AS  serviceType,
+        S.SERVICE_LEVEL  AS   serviceLevel,
+        S.PROBLEM_ID  AS   problemId,
+        PT.TYPE_NAME     AS typeName,
+        S.IS_SHANGXIU  AS  isShangxiu,
+        A.PROBLEM_DESC AS  problemDesc,
+        S.DISPOSAL_MEASURES  AS disposalMeasures,
+        U.user_name         AS    executorName,
+        PH.UPDATE_TIME AS updateTime,
+        PH.OPERATOR      AS operator,
+        U1.user_name         AS    operatorName,
+        PH.PROBLEM_ID  AS   problemIds,
+        PH.CREATE_TIME AS createTime,
+        PH.EXECUTOR     AS executor,
+        O.organization_name AS organizationName,
+        PH.DEPT_NO AS deptNo,
+        PH.CHILD_SETP AS  childSetp
+
+        FROM T_MM_PROBLEM_HANDLE PH
+
+        LEFT JOIN T_MM_APPROVAL_SHEET A ON A.ID=PH.APPROVAL_SHEET_ID AND A.DEL_FLAG=0
+        LEFT JOIN T_MM_SERVICE_REGISTER S ON PH.APPROVAL_SHEET_ID=S.APPROVAL_SHEET_ID  AND S.DEL_FLAG=0
+        LEFT JOIN T_SYS_USER U ON U.ID=PH.EXECUTOR AND U.DEL_FLAG=0
+        LEFT JOIN T_SYS_USER U1 ON U1.ID=PH.OPERATOR AND U1.DEL_FLAG=0
+        LEFT JOIN T_BD_PRODUCT P ON P.ID=A.PRODUCT_ID  AND P.DEL_FLAG=0
+        LEFT JOIN T_BD_CUSTOMER C ON C.ID=P.CUSTOMER_ID AND C.DEL_FLAG=0
+        LEFT JOIN T_BD_PROBLEM_TYPE PT ON PT.ID=S.PROBLEM_ID  AND PT.DEL_FLAG=0
+        LEFT JOIN T_SYS_ORGANIZATION O ON O.ID=PH.DEPT_NO  AND O.DEL_FLAG=0
+
+
+        WHERE PH.DEL_FLAG = 0
+        <trim prefix="AND (" suffix=")" prefixOverrides="AND">
+            <if test="problemHandle.serviceNo != null and problemHandle.serviceNo != ''">
+                AND S.SERVICE_NO like concat(concat('%', #{problemHandle.serviceNo}), '%')
+            </if>
+            <if test="problemHandle.figureNo != null and problemHandle.figureNo != ''">
+                AND P.FIGURE_NO like concat(concat('%', #{problemHandle.figureNo}), '%')
+            </if>
+            <if test="problemHandle.boxNo != null and problemHandle.boxNo != ''">
+                AND P.BOX_NO like concat(concat('%', #{problemHandle.boxNo}), '%')
+            </if>
+            <if test="problemHandle.serviceType != null and problemHandle.serviceType != ''">
+                AND S.SERVICE_TYPE  =#{problemHandle.serviceType}
+            </if>
+            <if test="problemHandle.serviceLevel != null and problemHandle.serviceLevel != ''">
+                AND S.SERVICE_LEVEL  =#{problemHandle.serviceLevel}
+            </if>
+            <if test="problemHandle.problemId != null and problemHandle.problemId != ''">
+                AND S.PROBLEM_ID  =#{problemHandle.problemId}
+            </if>
+            <if test="problemHandle.isShangxiu != null and problemHandle.isShangxiu != ''">
+                AND S.IS_SHANGXIU =#{problemHandle.isShangxiu}
+            </if>
+            <if test="problemHandle.childSetp != null and problemHandle.childSetp != ''">
+                AND PH.CHILD_SETP = #{problemHandle.childSetp}
+            </if>
+            <if test="problemHandle.childSetp1 != null and problemHandle.childSetp1 != ''">
+                AND S.CHILD_SETP = #{problemHandle.childSetp1}
+            </if>
+            <if test="problemHandle.deptNo != null and problemHandle.deptNo != ''">
+                AND PH.DEPT_NO = #{problemHandle.deptNo}
+            </if>
+
+            <if test="problemHandle.operator != null and problemHandle.operator != ''">
+                AND PH.OPERATOR = #{problemHandle.operator}
+            </if>
+            <if test="problemHandle.problemIds != null and problemHandle.problemIds != ''">
+                AND PH.PROBLEM_ID   like concat(concat('%', #{problemHandle.problemIds}), '%')
+            </if>
+            <if test="problemHandle.updateTimeStart != null and problemHandle.updateTimeEnd != null ">
+                AND PH.UPDATE_TIME <![CDATA[>=]]> #{problemHandle.updateTimeStart} AND PH.UPDATE_TIME <![CDATA[<]]> (#{problemHandle.updateTimeEnd}+1)
+            </if>
+            <if test="problemHandle.executor != null and problemHandle.executor != ''">
+                AND PH.EXECUTOR = #{problemHandle.executor}
+            </if>
+            <if test="problemHandle.createTimeStart != null and problemHandle.createTimeEnd != null ">
+                AND PH.CREATE_TIME <![CDATA[>=]]> #{problemHandle.createTimeStart} AND PH.CREATE_TIME <![CDATA[<]]> (#{problemHandle.createTimeEnd}+1)
+            </if>
+
+        </trim>
+        ORDER BY PH.UPDATE_TIME DESC
+    </select>
+   <!-- PH.APPROVAL_STATUS  AS  approvalStatus,
+    PH.PROCESS_SCHEME AS processScheme,
+    S.LEADER_APPROVAL_STATUS   AS  leaderApprovalStatus,
+
+    PH.CHILD_SETP AS  childSetp-->
 
 </mapper>

@@ -46,4 +46,10 @@ public class QueryApprovalSheet {
     private Date createTimeEnd;
 
     private String setp;
+
+    private String creator;
+
+    private String approvalStatus;//审批状态
+
+    private String approvalResult;
 }

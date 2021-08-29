@@ -2,7 +2,6 @@ package com.fs.swms.security.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.fs.swms.security.entity.Resource;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 

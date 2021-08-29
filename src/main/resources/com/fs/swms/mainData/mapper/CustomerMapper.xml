@@ -46,7 +46,7 @@
         <if test="customerWindFarmInfo.customerName != null and customerWindFarmInfo.customerName != ''">
             AND CUSTOMER_NAME like concat(concat('%', #{customerWindFarmInfo.customerName}), '%')
         </if>
-        ORDER BY CUSTOMER_NAME DESC
+        ORDER BY UPDATE_TIME DESC
 
     </select>
     <select id="selectCustomerListByCustomerName" resultMap="BaseResultMap">
@@ -57,7 +57,7 @@
         <if test="customerName!=null and customerName!=''">
             AND CUSTOMER_NAME like concat(concat('%', #{customerName}), '%')
         </if>
-        ORDER BY CUSTOMER_NAME DESC
+        ORDER BY UPDATE_TIME DESC
 
     </select>
 

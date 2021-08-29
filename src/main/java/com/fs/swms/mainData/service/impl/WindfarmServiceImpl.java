@@ -13,6 +13,7 @@ import com.fs.swms.mainData.entity.Windfarm;
 import com.fs.swms.mainData.mapper.WindfarmMapper;
 import com.fs.swms.mainData.service.ICustomerService;
 import com.fs.swms.mainData.service.IWindfarmService;
+import com.fs.swms.security.entity.User;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -120,7 +121,7 @@ public class WindfarmServiceImpl extends ServiceImpl<WindfarmMapper, Windfarm> i
     }
 
     @Override
-    public boolean batchCreateWindfarm(MyFile file) throws Exception {
+    public boolean batchCreateWindfarm(MyFile file, User user) throws Exception {
         if (file.getFile()==null) {
             throw new BusinessException("文件不能为空，请选择文件上传");
         }
@@ -128,7 +129,12 @@ public class WindfarmServiceImpl extends ServiceImpl<WindfarmMapper, Windfarm> i
 
         boolean result=false;
         //读取Excel表格获取数据
-        List<ReadExcelWindfarm> dataList = ExcelUtil.read(file, ReadExcelWindfarm.class);
+        String sheetName="客户风场信息_营销科";
+        List<ReadExcelWindfarm> dataList = ExcelUtil.read(file, ReadExcelWindfarm.class,sheetName);
+        if (dataList.size()==0) {
+
+            throw new BusinessException("基础数据模板中【"+sheetName+"】这个Excel表没有数据");
+        }
         for(ReadExcelWindfarm info:dataList){//检查表格中的数据是否合法
             if (info.getCustomerName()==null) {
                 throw new BusinessException("客户名称不能为空");
@@ -139,7 +145,7 @@ public class WindfarmServiceImpl extends ServiceImpl<WindfarmMapper, Windfarm> i
             //1:map.containsKey()   检测key是否重复
             if ((map1.containsKey(info.getCustomerName()))&&map1.containsKey(info.getWindfarm())) {
                 map1.clear();
-                throw new BusinessException("文档中客户名称"+info.getCustomerName()+"风场名称"+info.getWindfarm()+"有重复");
+                throw new BusinessException("文档中客户名称【"+info.getCustomerName()+"】风场名称【"+info.getWindfarm()+"】有重复");
 
             } else {
                 map1.put(info.getCustomerName(), 1);
@@ -154,7 +160,7 @@ public class WindfarmServiceImpl extends ServiceImpl<WindfarmMapper, Windfarm> i
             List<Customer> customerList=iCustomerService.selectCustomers(info.getCustomerName());
             //判断是否重复
             if(!CollectionUtils.isEmpty(windfarmList)&&!CollectionUtils.isEmpty(customerList)){
-                throw new BusinessException("文档中客户名称"+info.getCustomerName()+"风场名称"+info.getWindfarm()+"有重复");
+                throw new BusinessException("文档中客户名称【"+info.getCustomerName()+"】风场名称【"+info.getWindfarm()+"】有重复");
             }
         }
         //将Excel中的数据分类
@@ -184,6 +190,10 @@ public class WindfarmServiceImpl extends ServiceImpl<WindfarmMapper, Windfarm> i
             if ( !CollectionUtils.isEmpty(windfarmEntityList)&& customerName!=null) {
                 Customer customer=new Customer();
                 customer.setCustomerName(customerName);
+//                result=iCustomerService.save(customer);
+//                QueryWrapper<>
+                customer.setCreator(user.getId());
+                customer.setCreateTime(new Date());
                 Customer customer1 = iCustomerService.insertCustomer(customer);
                 for (Windfarm windfarm:windfarmEntityList) {
                     windfarm.setCustomerId(customer1.getId());

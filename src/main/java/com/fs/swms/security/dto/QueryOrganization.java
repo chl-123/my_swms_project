@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
+
 @Data
 public class QueryOrganization implements Serializable {
     private static final long serialVersionUID = 1L;

@@ -2,8 +2,12 @@ package com.fs.swms.business.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.fs.swms.business.dto.UpdateProblemHandle;
+import com.fs.swms.business.dto.*;
 import com.fs.swms.business.entity.ProblemHandle;
+import com.fs.swms.security.entity.User;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 /**
  * <p>
@@ -15,15 +19,20 @@ import com.fs.swms.business.entity.ProblemHandle;
  */
 public interface IProblemHandleService extends IService<ProblemHandle> {
 
-    Page<ProblemHandle> selectProblemHandleList(Page<ProblemHandle> page, ProblemHandle problemHandle);
+    public Page<ProblemHandleInfo> selectProblemHandleList(Page<ProblemHandleInfo> page, QueryProblemHandle problemHandle,User user);
 
-    Page<ProblemHandle> selectProblemHandleAll(Page<ProblemHandle> page);
+    boolean updateProblemHandle(UpdateProblemHandle problemHandle,List<MultipartFile> files);
 
-    boolean deleteProblemHandle(String id);
-
-    boolean updateProblemHandle(UpdateProblemHandle problemHandle);
-
-    ProblemHandle selectProblemHandleById(String problemHandleId);
+    ProblemHandleInfoEntity selectProblemHandleById(String problemHandleId);
 
 
+    boolean transfer(CreateProblemHandle problemHandle, User user);
+
+    boolean handle(CreateProblemHandle problemHandle, List<MultipartFile> files);
+
+
+
+    boolean cancel(String problemHandleId, String approvalSheetId,User user);
+
+    Page<ProblemHandleInfo> selectProblemHandleListForManagement(Page<ProblemHandleInfo> page, QueryProblemHandle problemHandle,User user);
 }

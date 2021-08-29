@@ -150,8 +150,13 @@ public class OrganizationServiceImpl extends ServiceImpl<OrganizationMapper, Org
         }
         Map<String, Integer> map1 = new HashMap<>();
         Map<String, Integer> map2 = new HashMap<>();
+        String sheetName="组织机构_技术科";
         //读取Excel表格获取数据
-        List<ReadExcelOrganization> dataList = ExcelUtil.read(file, ReadExcelOrganization.class);
+        List<ReadExcelOrganization> dataList = ExcelUtil.read(file, ReadExcelOrganization.class,sheetName);
+        if (dataList.size()==0) {
+
+            throw new BusinessException("基础数据模板中【"+sheetName+"】这个Excel表没有数据");
+        }
         for(ReadExcelOrganization info:dataList){
             if (info.getOrganizationName()==null) {
                 throw new BusinessException("部门名称不能为空");

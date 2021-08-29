@@ -104,17 +104,23 @@
             <if test="approvalSheet.isFree != null and approvalSheet.isFree != ''">
                 AND A.ISFREE =#{approvalSheet.isFree}
             </if>
+            <if test="approvalSheet.approvalStatus != null and approvalSheet.approvalStatus != ''">
+                AND A.APPROVAL_STATUS =#{approvalSheet.approvalStatus}
+            </if>
+            <if test="approvalSheet.approvalResult != null and approvalSheet.approvalResult != ''">
+                AND A.APPROVAL_RESULT =#{approvalSheet.approvalResult}
+            </if>
             <if test="approvalSheet.segments != null and approvalSheet.segments != ''">
                 AND A.SEGMENTS =#{approvalSheet.segments}
             </if>
             <if test="approvalSheet.manufactureDateStart != null and approvalSheet.manufactureDateEnd != null ">
-                AND P.MANUFACTURE_DATE BETWEEN #{approvalSheet.manufactureDateStart} and #{approvalSheet.manufactureDateEnd}
+                AND P.MANUFACTURE_DATE <![CDATA[>=]]> #{approvalSheet.manufactureDateStart} and P.MANUFACTURE_DATE <![CDATA[ <  ]]> (#{approvalSheet.manufactureDateEnd}+1)
             </if>
             <if test="approvalSheet.expireDateStart != null and approvalSheet.expireDateEnd != null ">
-                AND P.EXPIRE_DATE BETWEEN #{approvalSheet.expireDateStart} and #{approvalSheet.expireDateEnd}
+                AND P.EXPIRE_DATE <![CDATA[>=]]> #{approvalSheet.expireDateStart} and P.EXPIRE_DATE <![CDATA[ <  ]]>(#{approvalSheet.expireDateEnd}+1)
             </if>
             <if test="approvalSheet.createTimeStart != null and approvalSheet.createTimeEnd != null ">
-                AND A.CREATE_TIME BETWEEN #{approvalSheet.createTimeStart} and #{approvalSheet.createTimeEnd}
+                AND A.CREATE_TIME <![CDATA[>=]]> #{approvalSheet.createTimeStart} and A.CREATE_TIME <![CDATA[ <  ]]> (#{approvalSheet.createTimeEnd}+1)
             </if>
             <if test="approvalSheet.setp != null and approvalSheet.setp != ''">
                 AND A.SETP = #{approvalSheet.setp}
@@ -128,6 +134,9 @@
             </if>
             <if test="approvalSheet.jobNo != null and approvalSheet.jobNo != ''">
                 AND P.JOB_NO like concat(concat('%', #{approvalSheet.jobNo}), '%')
+            </if>
+            <if test="approvalSheet.creator != null and approvalSheet.creator != ''">
+                AND P.CREATOR = #{approvalSheet.creator}
             </if>
 
         </trim>

@@ -11,6 +11,7 @@ import com.fs.swms.common.annotation.auth.CurrentUser;
 import com.fs.swms.common.annotation.log.AroundLog;
 import com.fs.swms.common.base.PageResult;
 import com.fs.swms.common.base.Result;
+import com.fs.swms.common.controller.BaseController;
 import com.fs.swms.security.entity.User;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
@@ -32,7 +33,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/approvalSheet")
-public class ApprovalSheetController {
+public class ApprovalSheetController extends BaseController {
     @Autowired
     private IApprovalSheetService approvalSheetService;
 
@@ -61,8 +62,8 @@ public class ApprovalSheetController {
 
     @GetMapping("/list")
     @ApiOperation(value = "查询全部审批单")
-    public PageResult<ApprovalSheetInfo> list(QueryApprovalSheet approvalSheet, Page<ApprovalSheetInfo> page) {
-        Page<ApprovalSheetInfo> pageApprovalSheet = approvalSheetService.selectApprovalSheetList(page, approvalSheet);
+    public PageResult<ApprovalSheetInfo> list(QueryApprovalSheet approvalSheet, Page<ApprovalSheetInfo> page,@CurrentUser User user) {
+        Page<ApprovalSheetInfo> pageApprovalSheet = approvalSheetService.selectApprovalSheetList(page, approvalSheet,user);
         PageResult<ApprovalSheetInfo> pageResult = new PageResult<ApprovalSheetInfo>(pageApprovalSheet.getTotal(), pageApprovalSheet.getRecords());
         return pageResult;
     }

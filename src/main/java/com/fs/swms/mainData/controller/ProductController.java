@@ -3,15 +3,15 @@ package com.fs.swms.mainData.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fs.swms.common.annotation.log.AroundLog;
-import com.fs.swms.common.base.BusinessException;
 import com.fs.swms.common.base.PageResult;
 import com.fs.swms.common.base.Result;
+import com.fs.swms.common.controller.BaseController;
 import com.fs.swms.common.entity.MyFile;
-import com.fs.swms.common.util.Utils;
 import com.fs.swms.mainData.dto.CreateProduct;
 import com.fs.swms.mainData.dto.ProductInfo;
 import com.fs.swms.mainData.dto.QueryProduct;
 import com.fs.swms.mainData.dto.UpdateProduct;
+import com.fs.swms.mainData.entity.Product;
 import com.fs.swms.mainData.service.IProductService;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
@@ -21,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.text.ParseException;
 import java.util.List;
 
@@ -35,7 +34,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/product")
-public class ProductController {
+public class ProductController extends BaseController {
     @Autowired
     private IProductService iProductService;
 
@@ -149,22 +148,18 @@ public class ProductController {
         PageResult<ProductInfo> pageResult = new PageResult<ProductInfo>(productInfoPage.getTotal(), productInfoPage.getRecords());
         return pageResult;
     }
-    @GetMapping("/download/template")
-    @ApiOperation(value = "文件下载")
-    @ApiImplicitParam(paramType = "query", name = "fileName", value = "文件名", required = true, dataType = "String")
-    public void download(@RequestParam("fileName") String fileName, HttpServletRequest request, HttpServletResponse response)  {
-        try{
-            Utils.downloadFile(fileName,request,response);
-        }catch (Exception e){
-            throw new BusinessException("文件下载失败");
-        }
-    }
     @GetMapping("/select/boxNo")
-    @AroundLog(name = "根据齿轮箱编号，查询齿轮箱信息")
     @ApiImplicitParam(paramType = "query", name = "boxNo", value = "齿轮箱编号", required = true, dataType = "String")
     public Result<ProductInfo> selectByBoxNo(@RequestParam("boxNo") String boxNo) {
 
         ProductInfo result=iProductService.selectProductByBoxNo(boxNo);
         return new Result<ProductInfo>().success().put(result);
+    }
+    @GetMapping("/select/boxNoList")
+    @ApiOperation(value = "根据齿轮箱编号模糊查询获取齿轮箱编号列表")
+    @ApiImplicitParam(paramType = "query", name = "boxNo", value = "齿轮箱编号", required = true, dataType = "String")
+    public Result<List<Product>> selectBoxNoList(@RequestParam("boxNo") String boxNo) {
+        List<Product> result=iProductService.selectBoxNoList(boxNo);
+        return new Result<List<Product>>().success().put(result);
     }
 }

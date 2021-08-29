@@ -1,16 +1,14 @@
 package com.fs.swms.mainData.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fs.swms.common.base.BusinessException;
 import com.fs.swms.common.entity.MyFile;
 import com.fs.swms.common.excel.ExcelUtil;
-import com.fs.swms.mainData.dto.CreateProblemType;
-import com.fs.swms.mainData.dto.ProblemTypeTree;
-import com.fs.swms.mainData.dto.ReadExcelProblemType;
-import com.fs.swms.mainData.dto.UpdateProblemType;
+import com.fs.swms.mainData.dto.*;
 import com.fs.swms.mainData.entity.ProblemType;
 import com.fs.swms.mainData.mapper.ProblemTypeMapper;
 import com.fs.swms.mainData.service.IProblemTypeService;
@@ -69,15 +67,29 @@ public class ProblemTypeServiceImpl extends ServiceImpl<ProblemTypeMapper, Probl
 
 
     @Override
-    public Page<ProblemType> selectProblemTypeList(Page<ProblemType> page, ProblemType problemType) {
-        Page<ProblemType> problemTypePage = problemTypeMapper.selectProblemTypeList(page, problemType);
+    public Page<ProblemTypeInfo> selectProblemTypeList(Page<ProblemTypeInfo> page, ProblemType problemType) {
+        Page<ProblemTypeInfo> problemTypePage = problemTypeMapper.selectProblemTypeList(page, problemType);
+        List<ProblemTypeInfo> problemTypeInfoList = problemTypePage.getRecords();
+        for (ProblemTypeInfo problemTypeInfo:problemTypeInfoList) {
+            ProblemType byId = this.getById(problemTypeInfo.getParentId());
+            if (byId != null) {
+                problemTypeInfo.setParentTypeName(byId.getTypeName());
+            }
+        }
         return problemTypePage;
     }
 
     @Override
-    public Page<ProblemType> selectProblemTypeAll(Page<ProblemType> page) {
-        QueryWrapper<ProblemType> queryWrapper=new QueryWrapper<>();
-        Page<ProblemType> problemTypePage = this.page(page, queryWrapper);
+    public Page<ProblemTypeInfo> selectProblemTypeAll(Page<ProblemTypeInfo> page) {
+        ProblemType problemType=new ProblemType();
+        Page<ProblemTypeInfo> problemTypePage = problemTypeMapper.selectProblemTypeList(page, problemType);
+        List<ProblemTypeInfo> problemTypeInfoList = problemTypePage.getRecords();
+        for (ProblemTypeInfo problemTypeInfo:problemTypeInfoList) {
+            ProblemType byId = this.getById(problemTypeInfo.getParentId());
+            if (byId != null) {
+                problemTypeInfo.setParentTypeName(byId.getTypeName());
+            }
+        }
         return problemTypePage;
     }
 
@@ -135,22 +147,29 @@ public class ProblemTypeServiceImpl extends ServiceImpl<ProblemTypeMapper, Probl
             throw new BusinessException("文件不能为空，请选择文件上传");
         }
         Map<String, Integer> map2 = new HashMap<>();
+
         //读取Excel表格获取数据
-        List<ReadExcelProblemType> dataList = ExcelUtil.read(file, ReadExcelProblemType.class);
+        String sheetName="问题类型基础信息_质管科";
+        List<ReadExcelProblemType> dataList = ExcelUtil.read(file, ReadExcelProblemType.class,sheetName);
+        if (dataList.size()==0) {
+
+            throw new BusinessException("基础数据模板中【"+sheetName+"】这个Excel表没有数据");
+        }
         for (ReadExcelProblemType problemType : dataList) {
 
             if (problemType.getTypeName() == null) {
                 throw new BusinessException("问题类型名称不能为空");
             }
-            if (map2.containsKey(problemType.getTypeName())) {
-                map2.clear();
-                throw new BusinessException("问题类型名称重复");
+            if (map2.containsKey(problemType.getTypeName()+problemType.getParentTypeName())) {
+
+                throw new BusinessException("文档中问题类型【"+problemType.getTypeName()+"】名称重复");
             }else {
                 map2.put(problemType.getTypeName(), 1);
+
             }
 
-            if (problemType.getParentId() == null) {
-                throw new BusinessException("上一级问题类型不能为空");
+            if (problemType.getParentTypeName() == null) {
+                throw new BusinessException("文档中的上级问题类型名称不能为空");
             }
 
         }
@@ -162,29 +181,64 @@ public class ProblemTypeServiceImpl extends ServiceImpl<ProblemTypeMapper, Probl
             List<ProblemType> problemTypeList = this.list(ew);
             //判断是否重复
             if (!CollectionUtils.isEmpty(problemTypeList)) {
-                throw new BusinessException("问题名称" + problemType.getTypeName() + "已存在");
+                throw new BusinessException("问题名称【" + problemType.getTypeName() + "】已存在");
             }
         }
+        boolean result=false;
         //拷贝数据
         Collection<ProblemType> problemTypeEntityList = new ArrayList<>();
+       /* List<String> parentTypeNameList=new ArrayList<>();*/
         for (ReadExcelProblemType problemType : dataList) {
+
             ProblemType problemTypeEntity = new ProblemType();
-            BeanUtils.copyProperties(problemType, problemTypeEntity);
+            problemTypeEntity.setTypeName(problemType.getTypeName());
             problemTypeEntityList.add(problemTypeEntity);
+           /* if (!parentTypeNameList.contains(problemType.getParentTypeName())&&(problemType.getParentTypeName()!="0")) {
+                parentTypeNameList.add(problemType.getParentTypeName());
+            }*/
         }
         //执行保存
         QueryWrapper<ProblemType> ew = new QueryWrapper<>();
-        boolean result = this.saveBatch(problemTypeEntityList);
+        result = this.saveBatch(problemTypeEntityList);
+
+        for (ReadExcelProblemType problemType : dataList) {
+            if (!problemType .getParentTypeName().equals("0")) {
+                UpdateWrapper<ProblemType> typeUpdateWrapper=new UpdateWrapper<>();
+                QueryWrapper<ProblemType> queryWrapper1=new QueryWrapper<>();
+                QueryWrapper<ProblemType> queryWrapper2=new QueryWrapper<>();
+                queryWrapper1.eq("TYPE_NAME",problemType.getTypeName());
+                queryWrapper2.eq("TYPE_NAME",problemType.getParentTypeName());
+                List<ProblemType> typeList1 = this.list(queryWrapper1);
+                List<ProblemType> typeList2 = this.list(queryWrapper2);
+                if (!CollectionUtils.isEmpty(typeList1)&&!CollectionUtils.isEmpty(typeList2)) {
+
+                    typeUpdateWrapper.set("PARENT_ID",typeList2.get(0).getId());
+                    typeUpdateWrapper.set("UPDATE_TIME","");
+                    typeUpdateWrapper.set("OPERATOR","");
+                    typeUpdateWrapper.eq("ID",typeList1.get(0).getId());
+                    result=this.update(typeUpdateWrapper);
+                }
+            }
+
+        }
+
         return result;
     }
 
     @Override
-    public ProblemType selectProblemTypeById(String id) {
+    public ProblemTypeInfo selectProblemTypeById(String id) {
         ProblemType problemType = problemTypeMapper.selectById(id);
+        ProblemTypeInfo problemTypeInfo=new ProblemTypeInfo();
+
         if (problemType == null) {
             throw new BusinessException("根据ID查询不到数据");
         }
-        return problemType;
+        BeanUtils.copyProperties(problemType,problemTypeInfo);
+        ProblemType parentProblemType = problemTypeMapper.selectById(problemType.getParentId());
+        if (parentProblemType!=null) {
+            problemTypeInfo.setParentTypeName(parentProblemType.getTypeName());
+        }
+        return problemTypeInfo;
     }
 
     @Override
@@ -220,4 +274,8 @@ public class ProblemTypeServiceImpl extends ServiceImpl<ProblemTypeMapper, Probl
         return orgs;
 
     }
+   /* public ProblemType insertProblemType(ProblemType problemType) {
+        baseMapper.insert(problemType);
+        return problemType;
+    }*/
 }

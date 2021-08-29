@@ -7,16 +7,20 @@ import com.fs.swms.common.annotation.auth.CurrentUser;
 import com.fs.swms.common.annotation.log.AroundLog;
 import com.fs.swms.common.base.PageResult;
 import com.fs.swms.common.base.Result;
+import com.fs.swms.common.controller.BaseController;
 import com.fs.swms.common.entity.MyFile;
 import com.fs.swms.security.dto.*;
 import com.fs.swms.security.entity.User;
 import com.fs.swms.security.service.IDataPermissionService;
 import com.fs.swms.security.service.IUserService;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
 import org.apache.shiro.authz.annotation.RequiresRoles;
-import org.mindrot.jbcrypt.BCrypt;
-import org.springframework.beans.factory.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
@@ -31,7 +35,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/user")
 @Api(value = "UserController|用户相关的前端控制器")
-public class UserController {
+public class UserController extends BaseController {
 
     @Autowired
     IUserService userService;
@@ -99,20 +103,20 @@ public class UserController {
     @PostMapping("/pwd")
     @RequiresAuthentication
     @ApiOperation(value = "用户修改密码")
-//    @AroundLog(name = "用户修改密码")
+    @AroundLog(name = "用户修改密码")
     public Result<?> updatePassword(@RequestBody UpdateUser useru, @ApiIgnore @CurrentUser User tempUser) {
         String newPwd = useru.getNewPwd();
         String oldPwd = useru.getOldPwd();
-        if (StringUtils.hasText(newPwd) || StringUtils.hasText(oldPwd)) {
+        if (!StringUtils.hasText(newPwd) || !StringUtils.hasText(oldPwd)) {
             return new Result<>().error("密码不能为空");
         }
-        if (tempUser == null || !BCrypt.checkpw(tempUser.getUserAccount() + oldPwd, tempUser.getUserPassword())) {
+        if (tempUser == null || (oldPwd.equals(tempUser.getUserPassword()) == false)) {
             return new Result<>().error("原密码错误");
         }
         UpdateUser user = new UpdateUser();
         user.setId(tempUser.getId());
         user.setUserPassword(newPwd);
-        boolean result = userService.updateUser(user);
+        boolean result = userService.changePwd(user);
         if (result) {
             return new Result<>().success("修改成功");
         } else {
@@ -215,7 +219,6 @@ public class UserController {
     public Result<?> updateInfo(@RequestBody UpdateUser user, @ApiIgnore @CurrentUser User tempUser) {
         UpdateUser upUser = new UpdateUser();
         upUser.setUserName(user.getUserName());
-        upUser.setUserNickName(user.getUserNickName());
         upUser.setId(tempUser.getId());
         boolean result = userService.updateUser(user);
         if (result) {
@@ -300,8 +303,8 @@ public class UserController {
     @PostMapping("/batch")
     @ApiOperation(value = "批量用户信息")
     @AroundLog(name = "批量用户信息")
-    public Result<?> batchCreate(MyFile file) throws Exception {
-        boolean result=userService.batchCreate(file);
+    public Result<?> batchCreate(MyFile file,@CurrentUser User user) throws Exception {
+        boolean result=userService.batchCreate(file,user);
         if (result) {
             return new Result<>().success("添加成功");
 
@@ -310,13 +313,13 @@ public class UserController {
         }
     }
 
-
     @GetMapping("/getUser/{organizationId}")
     @ApiOperation(value = "根据部门ID查询部门信息")
     @AroundLog(name = "根据部门ID查询部门信息")
-    public Result<User> getUser(@PathVariable("organizationId") String organizationId)  {
-        User user=userService.getUserByOrganizationId(organizationId);
-        return new Result<User>().success().put(user);
+    public PageResult<UserInfo> getUser(@PathVariable("organizationId") String organizationId)  throws Exception {
+        List<UserInfo> listUser = userService.getUserByOrganizationId(organizationId);
+        PageResult<UserInfo> pageResult = new PageResult<UserInfo>(listUser.size(), listUser);
+        return pageResult;
     }
 
 }

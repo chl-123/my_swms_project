@@ -23,10 +23,10 @@ public class ReadExcelUser extends BaseRowModel {
     @ExcelProperty(value = "姓名",index = 2)
     private String userName;
 
-    @ExcelProperty(value = "角色",index = 3)
-    private String roleName;
+    //@ExcelProperty(value = "角色",index = 3)
+    //private String roleName;
 
-    @ExcelProperty(value = "状态",index = 4)
+    @ExcelProperty(value = "状态",index = 3)
     private String userStatus;
 
 }

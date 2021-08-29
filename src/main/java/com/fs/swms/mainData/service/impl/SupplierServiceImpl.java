@@ -102,8 +102,13 @@ public class SupplierServiceImpl extends ServiceImpl<SupplierMapper, Supplier> i
         }
         Map<String, Integer> map1 = new HashMap<>();
         Map<String, Integer> map2 = new HashMap<>();
+        String sheetName="供应商基础信息_技术科";
         //读取Excel表格获取数据
-        List<ReadExcelSupplier> dataList = ExcelUtil.read(file, ReadExcelSupplier.class);
+        List<ReadExcelSupplier> dataList = ExcelUtil.read(file, ReadExcelSupplier.class,sheetName);
+        if (dataList.size()==0) {
+
+            throw new BusinessException("基础数据模板中【"+sheetName+"】这个Excel表没有数据");
+        }
         for(ReadExcelSupplier supplier:dataList){
             if (supplier.getSupplierNo()==null) {
                 throw new BusinessException("供应商代码不能为空");
@@ -111,7 +116,7 @@ public class SupplierServiceImpl extends ServiceImpl<SupplierMapper, Supplier> i
             //1:map.containsKey()   检测key是否重复
             if (map1.containsKey(supplier.getSupplierNo())) {
                 map1.clear();
-                throw new BusinessException("供应商代码重复");
+                throw new BusinessException("文档中供应商代码【"+supplier.getSupplierName()+"】有重复");
             } else {
                 map1.put(supplier.getSupplierNo(), 1);
             }
@@ -120,7 +125,7 @@ public class SupplierServiceImpl extends ServiceImpl<SupplierMapper, Supplier> i
             }
             if (map2.containsKey(supplier.getSupplierName())) {
                 map2.clear();
-                throw new BusinessException("供应商名称重复");
+                throw new BusinessException("文档中的供应商名称【"+supplier.getSupplierName()+"】有重复");
             } else {
                 map2.put(supplier.getSupplierName(), 1);
             }
@@ -134,10 +139,10 @@ public class SupplierServiceImpl extends ServiceImpl<SupplierMapper, Supplier> i
             if(!CollectionUtils.isEmpty(supplierList)){
                 for(Supplier supplier1:supplierList){
                     if (supplier1.getSupplierNo().equals(supplier.getSupplierNo())) {
-                        throw new BusinessException("供应商代码"+supplier.getSupplierNo()+"已存在");
+                        throw new BusinessException("供应商代码【"+supplier.getSupplierNo()+"】已存在");
                     }
                     if(supplier1.getSupplierName().equals(supplier.getSupplierName())){
-                        throw new BusinessException("供应商名称"+supplier.getSupplierName()+"已存在");
+                        throw new BusinessException("供应商名称【"+supplier.getSupplierName()+"】已存在");
                     }
                 }
             }

@@ -41,6 +41,13 @@ public interface IUserService extends IService<User> {
     boolean deleteUser(String userId);
 
     /**
+     * 修改密码
+     * @param user
+     * @return boolean
+     */
+    boolean changePwd(UpdateUser user);
+
+    /**
      * 批量删除用户
      * @param userIds
      * @return boolean
@@ -74,19 +81,22 @@ public interface IUserService extends IService<User> {
     /**
      * 批量添加用户
      * @param file
+     * @param user 登录用户
      * @return boolean
      */
-    boolean batchCreate(MyFile file) throws Exception;
+    boolean batchCreate(MyFile file,User user) throws Exception;
     /**
      * 添加并返回该用户信息
      * @param user
      * @return User
      */
     User insertUser(User user);
+
+
     /**
      * 通过组织id查询用户
      * @param organizationId
      * @return User
      */
-    User getUserByOrganizationId(String organizationId);
+    public List<UserInfo> getUserByOrganizationId(String organizationId);
 }

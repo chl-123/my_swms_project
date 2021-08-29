@@ -1,13 +1,13 @@
 package com.fs.swms.security.entity;
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.fs.swms.common.entity.BaseEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-
-import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Data
 @TableName("t_sys_user")
 @ApiModel(value="User对象", description="用户表")
-public class User  extends BaseEntity {
+public class User extends BaseEntity {
 
     @ApiModelProperty(value = "主键")
     @TableId(value = "id", type = IdType.ASSIGN_ID)
@@ -30,18 +30,6 @@ public class User  extends BaseEntity {
     @ApiModelProperty(value = "姓名")
     @TableField("user_name")
     private String userName;
-
-    @ApiModelProperty(value = "1 : 男，0 : 女")
-    @TableField("user_sex")
-    private String userSex;
-
-    @ApiModelProperty(value = "邮箱")
-    @TableField("user_email")
-    private String userEmail;
-
-    @ApiModelProperty(value = "电话")
-    @TableField("user_mobile")
-    private String userMobile;
 
     @ApiModelProperty(value = "密码")
     @TableField("user_password")

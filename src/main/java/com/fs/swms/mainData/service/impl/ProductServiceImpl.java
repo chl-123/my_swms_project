@@ -82,7 +82,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         boolean result=false;
         QueryWrapper<Product> ew=new QueryWrapper<>();
         //查找相应的条件
-        if (product.getId()==null||product.getFigureNo()==null||product.getCustomerId()==null||product.getBoxNo()==null) {
+        if (product.getId()==null||product.getFigureNo()==null||
+                product.getCustomerId()==null||product.getBoxNo()==null) {
             throw new BusinessException("数据不能为空");
         }
         ew.ne("ID",product.getId()).and(h->h.eq("CUSTOMER_ID",product.getCustomerId())
@@ -170,7 +171,16 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     public boolean updateProductForMarketing(UpdateProduct product) {
         QueryWrapper<Product> ew=new QueryWrapper<>();
         //查找相应的条件
-        if (product.getId()==null||product.getJobNo()==null||product.getContractNo()==null||product.getBoxNo()==null) {
+        if (product.getId()==null) {
+            throw new BusinessException("ID不能为空");
+        }
+        if (product.getBoxNo()==null) {
+            throw new BusinessException("齿轮箱号不能为空");
+        }
+        if (
+                product.getJobNo()==null||product.getContractNo()==null ||
+                product.getWindfarmId()==null
+        ) {
             throw new BusinessException("数据不能为空");
         }
         ew.ne("ID",product.getId()).and(w->w.eq("JOB_NO",product.getJobNo())
@@ -200,8 +210,15 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         if (file.getFile()==null) {
             throw new BusinessException("文件不能为空，请选择文件上传");
         }
+        Map<String, Integer> map2 = new HashMap<>();
+        String sheetName="齿轮箱基础信息_质管科";
+
         Map<String, Integer> map1 = new HashMap<>();
-        List<ReadExcelProductQM> dataList = ExcelUtil.read(file, ReadExcelProductQM.class);
+        List<ReadExcelProductQM> dataList = ExcelUtil.read(file, ReadExcelProductQM.class,sheetName);
+        if (dataList.size()==0) {
+
+            throw new BusinessException("基础数据模板中【"+sheetName+"】这个Excel表没有数据");
+        }
         for(ReadExcelProductQM info:dataList){
             if (info.getCustomerName()==null) {
                 throw new BusinessException("请填写客户名称!");
@@ -274,8 +291,15 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
 
     @Override
     public boolean batchCreateForMarketing(MyFile file) throws Exception {
+        List<String> sheetNameList = ExcelUtil.getSheetName(file, ReadExcelProductM.class);
+        Map<String, Integer> map2 = new HashMap<>();
+        String sheetName="齿轮箱基础信息_营销科";
         Map<String, Integer> map1 = new HashMap<>();
-        List<ReadExcelProductM> dataList = ExcelUtil.read(file, ReadExcelProductM.class);
+        List<ReadExcelProductM> dataList = ExcelUtil.read(file, ReadExcelProductM.class,sheetName);
+        if (dataList.size()==0) {
+
+            throw new BusinessException("基础数据模板中【"+sheetName+"】这个Excel表没有数据");
+        }
         for(ReadExcelProductM info:dataList){
             if (info.getCustomerName()==null) {
                 throw new BusinessException("客户名称不能为空");
@@ -311,7 +335,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
 
             if ((map1.containsKey(info.getCustomerName()))&&map1.containsKey(info.getFigureNo())&&map1.containsKey(info.getBoxNo())) {
                 map1.clear();
-                throw new BusinessException("文档中客户名称"+info.getCustomerName()+"产品图号"+info.getFigureNo()+"齿轮箱编号"+info.getBoxNo()+"在文档中有重复");
+                throw new BusinessException("文档中客户名称【"+info.getCustomerName()+"】产品图号【"+info.getFigureNo()+"】齿轮箱编号【"+info.getBoxNo()+"】在文档中有重复");
             } else {
                 map1.put(info.getCustomerName(), 1);
                 map1.put(info.getFigureNo(), 1);
@@ -322,7 +346,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         for(ReadExcelProductM info:dataList){
             List<Customer> customers = iCustomerService.selectCustomers(info.getCustomerName());
             if (customers.size()==0) {
-                throw new BusinessException("客户名称"+info.getCustomerName()+"在系统中不存在");
+                throw new BusinessException("客户名称【"+info.getCustomerName()+"】在系统中不存在");
             }
             QueryWrapper<Product> ew=new QueryWrapper<>();
             //查找相应的条件
@@ -332,21 +356,21 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
                             .and(f->f.eq("BOX_NO",info.getBoxNo())));
             List<Product> productList=this.list(ew);
             if(CollectionUtils.isEmpty(productList)){//判断是否重复
-                throw new BusinessException("客户"+info.getCustomerName()+"产品图号"+info.getFigureNo()+"齿轮箱号"+info.getBoxNo()+"系统中不存在");
+                throw new BusinessException("客户【"+info.getCustomerName()+"】产品图号【"+info.getFigureNo()+"】齿轮箱号【"+info.getBoxNo()+"】系统中不存在");
 
             }
             QueryWrapper<Windfarm> windfarmQueryWrapper=new QueryWrapper<>();
             windfarmQueryWrapper.eq("CUSTOMER_ID",customer.getId()).and(e->e.eq("WINDFARM",info.getWindfarm()));
             List<Windfarm> list = iWindfarmService.list(windfarmQueryWrapper);
             if (CollectionUtils.isEmpty(list)) {
-                throw new BusinessException("客户"+info.getCustomerName()+"的风场"+info.getWindfarm()+"在系统中不存在");
+                throw new BusinessException("客户【"+info.getCustomerName()+"】的风场【"+info.getWindfarm()+"】在系统中不存在");
             }
             ew.eq("JOB_NO",info.getJobNo())
                     .and(e->e.eq("CONTRACT_NO",info.getContractNo())
                             .and(f->f.eq("BOX_NO",info.getBoxNo())));
             List<Product> productList1=this.list(ew);
             if(!CollectionUtils.isEmpty(productList1)){//判断是否重复
-                throw new BusinessException("合同"+info.getContractNo()+"工号"+info.getJobNo()+"齿轮箱号"+info.getBoxNo()+"组合在系统中已存在!");
+                throw new BusinessException("合同【"+info.getContractNo()+"】工号【"+info.getJobNo()+"】齿轮箱号【"+info.getBoxNo()+"】组合在系统中已存在!");
             }
         }
         Collection<Product> productList=new ArrayList<>();
@@ -448,6 +472,9 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         }
         Product product=productList.get(0);
         QueryWrapper<Windfarm> queryWrapper=new QueryWrapper<>();
+        if (product.getWindfarmId()==null) {
+            throw new BusinessException("该产品对应的风场ID为空");
+        }
         queryWrapper.eq("ID",product.getWindfarmId());
         List<Windfarm> windfarmList = iWindfarmService.list(queryWrapper);
         if(CollectionUtils.isEmpty(windfarmList)){
@@ -466,5 +493,24 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         productInfo.setCustomerName(list.get(0).getCustomerName());
         return productInfo;
     }
+    public List<Product> selectBoxNoList(String boxNo){
+        if (boxNo == null||boxNo.equals("")) {
+            throw new BusinessException("齿轮箱编号不能为空");
+        }
+        QueryWrapper<Product> queryWrapper=new QueryWrapper<>();
+        queryWrapper.like("BOX_NO", boxNo);
+        List<Product> productList = this.list(queryWrapper);
+        List<Product> boxNoList=new ArrayList<>();
+        if (!CollectionUtils.isEmpty(productList)) {
+            for(Product product:productList){
+                if (product.getBoxNo()!=null&&product.getContractNo()!=null&&product.getWindfarmId()!=null) {
+                    boxNoList.add(product);
+                }
+            }
+
+        }
+        return boxNoList;
+    }
+
 
 }

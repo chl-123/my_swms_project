@@ -6,6 +6,7 @@ import com.fs.swms.mainData.dto.CreateWindfarm;
 import com.fs.swms.mainData.dto.QueryWindfarm;
 import com.fs.swms.mainData.dto.UpdateCustomer;
 import com.fs.swms.mainData.entity.Windfarm;
+import com.fs.swms.security.entity.User;
 
 /**
  * <p>
@@ -45,7 +46,7 @@ public interface IWindfarmService extends IService<Windfarm> {
      * @param file
      * @return boolean
      */
-    boolean batchCreateWindfarm(MyFile file) throws Exception;
+    boolean batchCreateWindfarm(MyFile file, User user) throws Exception;
 
     /**
      * 通过客户id查询客户风场

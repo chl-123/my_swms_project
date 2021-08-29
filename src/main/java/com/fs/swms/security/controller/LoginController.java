@@ -14,9 +14,11 @@ import com.fs.swms.security.dto.LoginUser;
 import com.fs.swms.security.dto.PwdUser;
 import com.fs.swms.security.dto.UpdateUser;
 import com.fs.swms.security.dto.UserInfo;
+import com.fs.swms.security.entity.Organization;
 import com.fs.swms.security.entity.Resource;
 import com.fs.swms.security.entity.Role;
 import com.fs.swms.security.entity.User;
+import com.fs.swms.security.service.IOrganizationUserService;
 import com.fs.swms.security.service.IResourceService;
 import com.fs.swms.security.service.IUserRoleService;
 import com.fs.swms.security.service.IUserService;
@@ -25,7 +27,6 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
-import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.beans.BeanCopier;
 import org.springframework.web.bind.annotation.*;
@@ -58,6 +59,9 @@ public class LoginController {
 
     @Autowired
     private IResourceService resourceService;
+
+    @Autowired
+    private IOrganizationUserService organizationUserService;
 
 //    @Autowired
 //    private CacheChannel cacheChannel;
@@ -95,9 +99,10 @@ public class LoginController {
         }
         // 查询用户是否存在
         QueryWrapper<User> ew = new QueryWrapper<>();
-        ew.eq("user_account", userAccount).or().eq("user_mobile", userAccount).or().eq("user_email", userAccount);
+        ew.eq("user_account", userAccount).eq("user_password", userPassword);
         User user = userService.getOne(ew);
-        if (ObjectUtils.isEmpty(user) || !BCrypt.checkpw(user.getUserAccount() + userPassword, user.getUserPassword())) {
+
+        if (ObjectUtils.isEmpty(user)) {
             return new Result<String>().error(ResponseConstant.INVALID_USERNAME_PASSWORD);
         }
         String token = jwtComponent.sign(user.getUserAccount(), user.getUserPassword(), Constant.ExpTimeType.WEB);
@@ -130,6 +135,13 @@ public class LoginController {
 
         List<String> resourceStringList = resourceService.queryResourceListByUserId(userId);
         userInfo.setStringResources(resourceStringList);
+
+        Organization organization = organizationUserService.queryOrganizationByUserId(userId);
+        if(null != organization) {
+            userInfo.setOrganizationId(organization.getId());
+            userInfo.setOrganizationName(organization.getOrganizationName());
+        }
+
         return new Result<UserInfo>().success().put(userInfo);
     }
 
@@ -153,7 +165,7 @@ public class LoginController {
     @NoAuthentication
     @ApiOperation(value = "未登录用户找回密码，更新密码")
     public Result<?> changePwd(@Valid @RequestBody PwdUser user) {
-        User userEntity = new User();
+        /*User userEntity = new User();
         BeanCopier.create(PwdUser.class, User.class, false).copy(user, userEntity, null);
         String pwd = userEntity.getUserPassword();
         if (!StringUtils.isEmpty(pwd)) {
@@ -162,7 +174,8 @@ public class LoginController {
         }
         QueryWrapper<User> wrapper = new QueryWrapper<>();
         wrapper.eq("user_mobile", userEntity.getUserMobile());
-        boolean result = userService.update(userEntity, wrapper);
+        boolean result = userService.update(userEntity, wrapper);*/
+        boolean result = false;
         if (result) {
             return new Result<>().success("密码修改成功,请登录");
         } else {
@@ -178,14 +191,14 @@ public class LoginController {
     @ApiOperation(value = "登录用户，更新密码")
     public Result<?> changePwdPersonal(@Valid @RequestBody UpdateUser user, @ApiIgnore @CurrentUser User userc) {
         User userEntity = new User();
-        userEntity.setUserMobile(userc.getUserMobile());
+        userEntity.setUserAccount(userc.getUserAccount());
         String pwd = user.getUserPassword();
         if (!StringUtils.isEmpty(pwd)) {
-            String cryptPwd = BCrypt.hashpw(pwd, BCrypt.gensalt());
-            userEntity.setUserPassword(cryptPwd);
+            //String cryptPwd = BCrypt.hashpw(pwd, BCrypt.gensalt());
+            userEntity.setUserPassword(pwd);
         }
         QueryWrapper<User> wrapper = new QueryWrapper<>();
-        wrapper.eq("user_mobile", userEntity.getUserMobile());
+        wrapper.eq("user_account", userEntity.getUserAccount());
         boolean result = userService.update(userEntity, wrapper);
         if (result) {
             return new Result<>().success("密码修改成功,请登录");

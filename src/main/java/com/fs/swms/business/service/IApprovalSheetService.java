@@ -37,7 +37,7 @@ public interface IApprovalSheetService extends IService<ApprovalSheet> {
      * @param approvalSheet
      * @return Page<Role>
      */
-    Page<ApprovalSheetInfo> selectApprovalSheetList(Page<ApprovalSheetInfo> page, QueryApprovalSheet approvalSheet);
+    Page<ApprovalSheetInfo> selectApprovalSheetList(Page<ApprovalSheetInfo> page, QueryApprovalSheet approvalSheet,User user);
 
     /**
      * 分页查询审批单列表（全部）

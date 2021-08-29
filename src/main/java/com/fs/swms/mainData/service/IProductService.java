@@ -91,4 +91,6 @@ public interface IProductService extends IService<Product> {
      * @return ProductInfo
      */
     ProductInfo selectProductByBoxNo(String boxNo);
+
+    public List<Product> selectBoxNoList(String boxNo);
 }

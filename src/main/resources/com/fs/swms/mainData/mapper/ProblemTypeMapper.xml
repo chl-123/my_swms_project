@@ -18,7 +18,7 @@
     <sql id="Base_Column_List">    <!-- 改成和数据库字段的顺序一致 -->
         ID, TYPE_NAME, PARENT_ID,CREATE_TIME, CREATOR,UPDATE_TIME,OPERATOR, DEL_FLAG
     </sql>
-    <select id="selectProblemTypeList" resultType="com.fs.swms.mainData.entity.ProblemType" >
+    <select id="selectProblemTypeList" resultType="com.fs.swms.mainData.dto.ProblemTypeInfo" >
         SELECT
         <include refid="Base_Column_List"/>
         FROM T_BD_PROBLEM_TYPE
@@ -26,7 +26,7 @@
         <if test="problemType.typeName != null and problemType.typeName != ''">
             AND TYPE_NAME like concat(concat('%', #{problemType.typeName}), '%')
         </if>
-        ORDER BY UPDATE_TIME DESC
+        ORDER BY PARENT_ID,UPDATE_TIME   DESC
     </select>
 
 
@@ -50,7 +50,7 @@
         WHERE DEL_FLAG = 0
         start with PARENT_ID = #{parentId}
         connect by prior ID = PARENT_ID
-        order by TYPE_NAME
+        order by UPDATE_TIME
     </select>
 
 

@@ -6,15 +6,20 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fs.swms.common.annotation.log.AroundLog;
 import com.fs.swms.common.base.PageResult;
 import com.fs.swms.common.base.Result;
-import com.fs.swms.security.dto.*;
+import com.fs.swms.security.dto.CreateRole;
+import com.fs.swms.security.dto.UpdateRole;
+import com.fs.swms.security.dto.UpdateRoleResource;
 import com.fs.swms.security.entity.Role;
 import com.fs.swms.security.entity.RoleResource;
 import com.fs.swms.security.service.IRoleResourceService;
 import com.fs.swms.security.service.IRoleService;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
 import org.apache.shiro.authz.annotation.RequiresRoles;
-import org.springframework.beans.factory.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -55,7 +60,7 @@ public class RoleController {
      * 添加角色
      */
     @PostMapping("/create")
-    @RequiresRoles("SYSADMIN")
+//    @RequiresRoles("SYSADMIN")
     @ApiOperation(value = "添加角色")
     @AroundLog(name = "添加角色")
     public Result<?> create(@RequestBody CreateRole role) {

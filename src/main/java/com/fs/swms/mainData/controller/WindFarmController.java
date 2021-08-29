@@ -2,12 +2,12 @@ package com.fs.swms.mainData.controller;
 
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fs.swms.common.annotation.auth.CurrentUser;
 import com.fs.swms.common.annotation.log.AroundLog;
-import com.fs.swms.common.base.BusinessException;
 import com.fs.swms.common.base.PageResult;
 import com.fs.swms.common.base.Result;
+import com.fs.swms.common.controller.BaseController;
 import com.fs.swms.common.entity.MyFile;
-import com.fs.swms.common.util.Utils;
 import com.fs.swms.mainData.dto.CreateWindfarm;
 import com.fs.swms.mainData.dto.CustomerWindFarmInfo;
 import com.fs.swms.mainData.dto.QueryWindfarm;
@@ -15,13 +15,11 @@ import com.fs.swms.mainData.dto.UpdateCustomer;
 import com.fs.swms.mainData.entity.Customer;
 import com.fs.swms.mainData.service.ICustomerService;
 import com.fs.swms.mainData.service.IWindfarmService;
+import com.fs.swms.security.entity.User;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>
@@ -34,7 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 @RestController
 @RequestMapping("/windfarm")
 @ApiOperation("客户风场前端控制器")
-public class WindFarmController {
+public class WindFarmController extends BaseController {
 
     @Autowired
     private IWindfarmService iWindfarmService;
@@ -44,8 +42,8 @@ public class WindFarmController {
     @PostMapping("/batch")
     @ApiOperation(value = "批量添加客户风场")
     @AroundLog(name = "批量添加客户风场")
-    public Result<?> batchCreate(MyFile file) throws Exception {
-        boolean result=iWindfarmService.batchCreateWindfarm(file);
+    public Result<?> batchCreate(MyFile file, @CurrentUser User user) throws Exception {
+        boolean result=iWindfarmService.batchCreateWindfarm(file,user);
         if (result) {
             return new Result<>().success("添加成功");
 
@@ -116,16 +114,4 @@ public class WindFarmController {
         PageResult<CustomerWindFarmInfo> pageResult = new PageResult<CustomerWindFarmInfo>(customerWindFarmInfoPage.getTotal(), customerWindFarmInfoPage.getRecords());
         return pageResult;
     }
-    @GetMapping("/download/template")
-    @ApiOperation(value = "文件下载")
-    @ApiImplicitParam(paramType = "query", name = "fileName", value = "文件名", required = true, dataType = "String")
-    public void download(@RequestParam("fileName") String fileName, HttpServletRequest request, HttpServletResponse response)  {
-        try{
-            Utils.downloadFile(fileName,request,response);
-        }catch (Exception e){
-            throw new BusinessException("文件下载失败");
-        }
-    }
-
-
 }

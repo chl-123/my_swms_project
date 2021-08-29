@@ -3,7 +3,9 @@ package com.fs.swms.security.dto;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import javax.validation.constraints.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.List;
 
@@ -53,16 +55,12 @@ public class CreateUser implements Serializable
      * 邮箱
      */
     @ApiModelProperty(value = "邮箱")
-    @NotBlank
-    @Email
     private String userEmail;
 
     /**
      * 电话
      */
     @ApiModelProperty(value = "手机号码")
-    @NotBlank(message="手机号码不能为空")
-    @Size(min=11,max=11,message="手机号码长度不正确")
     private String userMobile;
 
     /**

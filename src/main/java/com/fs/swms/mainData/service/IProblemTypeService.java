@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.fs.swms.common.entity.MyFile;
 import com.fs.swms.mainData.dto.CreateProblemType;
+import com.fs.swms.mainData.dto.ProblemTypeInfo;
 import com.fs.swms.mainData.dto.ProblemTypeTree;
 import com.fs.swms.mainData.dto.UpdateProblemType;
 import com.fs.swms.mainData.entity.ProblemType;
@@ -38,13 +39,13 @@ public interface IProblemTypeService extends IService<ProblemType> {
      * @param page
      * @return Page<ProblemType>
      */
-    Page<ProblemType> selectProblemTypeList(Page<ProblemType> page, ProblemType problemType);
+    Page<ProblemTypeInfo> selectProblemTypeList(Page<ProblemTypeInfo> page, ProblemType problemType);
     /**
      * 查询所有问题类型
      * @param page
      * @return Page<ProblemType>
      */
-    Page<ProblemType> selectProblemTypeAll(Page<ProblemType> page);
+    Page<ProblemTypeInfo> selectProblemTypeAll(Page<ProblemTypeInfo> page);
     /**
      * 根据问题类型ID删除问题类型信息
      * @param id
@@ -63,7 +64,7 @@ public interface IProblemTypeService extends IService<ProblemType> {
      * @param id
      * @return ProblemType
      */
-    ProblemType selectProblemTypeById(String id);
+    ProblemTypeInfo selectProblemTypeById(String id);
 
 
     boolean deleteProblemTypeAll(String id);

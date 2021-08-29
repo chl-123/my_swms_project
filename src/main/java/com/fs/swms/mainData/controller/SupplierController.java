@@ -3,11 +3,10 @@ package com.fs.swms.mainData.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fs.swms.common.annotation.log.AroundLog;
-import com.fs.swms.common.base.BusinessException;
 import com.fs.swms.common.base.PageResult;
 import com.fs.swms.common.base.Result;
+import com.fs.swms.common.controller.BaseController;
 import com.fs.swms.common.entity.MyFile;
-import com.fs.swms.common.util.Utils;
 import com.fs.swms.mainData.dto.CreateSupplier;
 import com.fs.swms.mainData.dto.UpdateSupplier;
 import com.fs.swms.mainData.entity.Supplier;
@@ -16,9 +15,6 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>A
@@ -30,7 +26,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 @RestController
 @RequestMapping("/supplier")
-public class SupplierController {
+public class SupplierController  extends BaseController {
     @Autowired
     private ISupplierService supplierService;
 
@@ -108,15 +104,4 @@ public class SupplierController {
         Supplier supplier = supplierService.selectBySupplierNo(supplierNo);
         return new Result<Supplier>().success().put(supplier);
     }
-    @GetMapping("/download/template")
-    @ApiOperation(value = "文件下载")
-    @ApiImplicitParam(paramType = "query", name = "fileName", value = "文件名", required = true, dataType = "String")
-    public void download(@RequestParam("fileName") String fileName, HttpServletRequest request, HttpServletResponse response)  {
-        try{
-            Utils.downloadFile(fileName,request,response);
-        }catch (Exception e){
-            throw new BusinessException("文件下载失败");
-        }
-    }
-
 }

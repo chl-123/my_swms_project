@@ -23,7 +23,7 @@ import java.util.*;
  */
 public class CodeGenerator {
 
-    final static String  dirPath = "H:/project";
+    final static String  dirPath = "H:/project2";
     public static String scanner(String tip) {
         Scanner scanner = new Scanner(System.in);
         StringBuilder help = new StringBuilder();
@@ -94,7 +94,7 @@ public class CodeGenerator {
         strategy.setTableFillList(list);
         strategy.setRestControllerStyle(true);//开启驼峰命名
         // 如果 setInclude() 不加参数, 会自定查找所有表
-        strategy.setInclude(new String[] { "T_MM_SERVICE_REGISTER" }); // 需要生成的表
+        strategy.setInclude(new String[] { "T_MM_PROBLEM_HANDLE" }); // 需要生成的表
         //strategy.setInclude(scanner("表名"));
 //        strategy.setInclude(scanner("表名，多个英文逗号分割").split(","));
         // strategy.setExclude(new String[]{"test"}); // 排除生成的表

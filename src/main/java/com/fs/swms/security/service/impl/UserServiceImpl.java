@@ -12,7 +12,6 @@ import com.fs.swms.security.entity.*;
 import com.fs.swms.security.mapper.UserMapper;
 import com.fs.swms.security.service.*;
 import org.apache.commons.lang3.StringUtils;
-import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
@@ -20,6 +19,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cglib.beans.BeanCopier;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +27,6 @@ import java.util.Map;
 /**
  * @ClassName: UserServiceImpl
  * @Description: 用户相关操作接口实现类
- * @author jeebase-WANGLEI
- * @date 2018年5月18日 下午3:20:30
  */
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
@@ -58,9 +56,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Value("${system.defaultOrgId}")
     private String defaultOrgId;
-
-//    @Autowired
-//    private CacheChannel cacheChannel;
 
     @Override
     public Page<UserInfo> selectUserList(Page<UserInfo> page, QueryUser user) {
@@ -103,12 +98,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             // 默认密码，配置文件配置
             pwd = defaultPwd;
             // 初次登录需要修改密码
-             userEntity.setUserStatus( "2" );
+            userEntity.setUserStatus( "2" );
         }
 
         //密码加密
-        String cryptPwd = BCrypt.hashpw(userEntity.getUserAccount() + pwd, BCrypt.gensalt());
-        userEntity.setUserPassword(cryptPwd);
+        //String cryptPwd = BCrypt.hashpw(userEntity.getUserAccount() + pwd, BCrypt.gensalt());
+        userEntity.setUserPassword(pwd);
         boolean result = this.save(userEntity);
         if (result) {
             //保存用户和组织机构的关系
@@ -125,9 +120,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             dataPermissionService.save(dataPermission);
 
             //保存用户角色信息
-            user.setId(userEntity.getId());
-            user.setUserPassword(cryptPwd);
-
             if(!CollectionUtils.isEmpty(roleIds))
             {
                 for (String role : roleIds)
@@ -154,9 +146,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     public boolean updateUser(UpdateUser user) {
         QueryWrapper<User> ew = new QueryWrapper<>();
         ew.ne("id", user.getId())
-                .and(e -> e.eq("user_account", user.getUserAccount()).or().eq("user_account", user.getUserEmail()).or().eq("user_account", user.getUserMobile()).or()
-                        .or().eq("user_email", user.getUserAccount()).or().eq("user_email", user.getUserEmail()).or().eq("user_email", user.getUserMobile()).or()
-                        .eq("user_mobile", user.getUserAccount()).or().eq("user_mobile", user.getUserEmail()).or().eq("user_mobile", user.getUserMobile()));
+                .and(e -> e.eq("user_account", user.getUserAccount()));
         List<User> userList = this.list(ew);
         if (!CollectionUtils.isEmpty(userList)) {
             throw new BusinessException("账号已经存在");
@@ -164,26 +154,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
         User userEntity = new User();
         BeanCopier.create(UpdateUser.class, User.class, false).copy(user, userEntity, null);
-        String pwd = userEntity.getUserPassword();
+        /*String pwd = userEntity.getUserPassword();
         User oldInfo = this.getById(userEntity.getId());
         if (!StringUtils.isEmpty(pwd)) {
             String cryptPwd = BCrypt.hashpw(oldInfo.getUserAccount() + pwd, BCrypt.gensalt());
             userEntity.setUserPassword(cryptPwd);
-        }
+        }*/
         QueryWrapper<User> wrapper = new QueryWrapper<>();
         wrapper.eq("id", userEntity.getId());
         boolean result = this.update(userEntity, wrapper);
-
-//        //修改后更新缓存
-//        cacheChannel.evict("users", "account_" + oldInfo.getUserAccount());
-//        if (!StringUtils.isEmpty(oldInfo.getUserEmail()))
-//        {
-//            cacheChannel.evict("users", "account_" + oldInfo.getUserEmail());
-//        }
-//        if (!StringUtils.isEmpty(oldInfo.getUserMobile()))
-//        {
-//            cacheChannel.evict("users", "account_" + oldInfo.getUserMobile());
-//        }
 
         String organizationId = user.getOrganizationId();
         QueryWrapper<OrganizationUser> organizationUserWrapper = new QueryWrapper<>();
@@ -265,11 +244,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                     result = userRoleService.save(userRole);
                 }
             }
-//            cacheChannel.evict("roles", "user_id_" + userEntity.getId());
-//            cacheChannel.evict("resources", "user_id_" + userEntity.getId());
-//            cacheChannel.evict("resources", "all_user_id_" + userEntity.getId());
         }
         return result;
+    }
+
+    @Override
+    public boolean changePwd(UpdateUser user){
+        User userEntity = new User();
+        BeanCopier.create(UpdateUser.class, User.class, false).copy(user, userEntity, null);
+
+        QueryWrapper<User> wrapper = new QueryWrapper<>();
+        wrapper.eq("id", userEntity.getId());
+
+        return this.update(userEntity, wrapper);
     }
 
 
@@ -278,38 +265,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     public boolean deleteUser(String userId) {
         User oldInfo = this.getById(userId);
         boolean result = this.removeById(userId);
-//        if (result) {
-//            cacheChannel.evict("users", "account_" + oldInfo.getUserAccount());
-//            if (!StringUtils.isEmpty(oldInfo.getUserEmail()))
-//            {
-//                cacheChannel.evict("users", "account_" + oldInfo.getUserEmail());
-//            }
-//            if (!StringUtils.isEmpty(oldInfo.getUserMobile()))
-//            {
-//                cacheChannel.evict("users", "account_" + oldInfo.getUserMobile());
-//            }
-//            cacheChannel.evict("roles", "user_id_" + userId);
-//        }
         return result;
     }
 
     @Override
     public boolean batchDeleteUser(List<String> userIds) {
-        List<User> userList = (List<User>) this.listByIds(userIds);
-//        for (User oldInfo : userList)
-//        {
-//            cacheChannel.evict("users", "account_" + oldInfo.getUserAccount());
-//            if (!StringUtils.isEmpty(oldInfo.getUserEmail()))
-//            {
-//                cacheChannel.evict("users", "account_" + oldInfo.getUserEmail());
-//            }
-//            if (!StringUtils.isEmpty(oldInfo.getUserMobile()))
-//            {
-//                cacheChannel.evict("users", "account_" + oldInfo.getUserMobile());
-//            }
-//            cacheChannel.evict("users", "id_" + oldInfo.getId());
-//            cacheChannel.evict("roles", "user_id_" + oldInfo.getId());
-//        }
         boolean result = this.removeByIds(userIds);
         return result;
     }
@@ -318,8 +278,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Cacheable(value = "users", key = "'account_'.concat(#userAccount)")
     public User queryUserByAccount(String userAccount) {
         QueryWrapper<User> ew = new QueryWrapper<>();
-        ew.and(e -> e.eq("user_account", userAccount).or().eq("user_email", userAccount).or().eq("user_mobile",
-                userAccount));
+        ew.and(e -> e.eq("user_account", userAccount));
         return this.getOne(ew);
     }
 
@@ -335,14 +294,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
-    public boolean batchCreate(MyFile file) throws Exception {
-        if (file.getFile()==null) {
-            throw new BusinessException("文件不能为空，请选择文件上传");
-        }
+    public boolean batchCreate(MyFile file,User loginUser) throws Exception {
         Map<String, Integer> map1 = new HashMap<>();
         Map<String, Integer> map2 = new HashMap<>();
+        String sheetName="人员信息_技术科";
         //读取Excel表格获取数据
-        List<ReadExcelUser> dataList = ExcelUtil.read(file, ReadExcelUser.class);
+        List<ReadExcelUser> dataList = ExcelUtil.read(file, ReadExcelUser.class,sheetName);
+        if (dataList.size()==0) {
+
+            throw new BusinessException("基础数据模板中【"+sheetName+"】这个Excel表没有数据");
+        }
         for(ReadExcelUser info:dataList){
             if (info.getOrganizationName()==null) {
                 throw new BusinessException("部门名称不能为空");
@@ -352,9 +313,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             }
             if (info.getUserName()==null) {
                 throw new BusinessException("用户姓名不能为空");
-            }
-            if (info.getRoleName()==null) {
-                throw new BusinessException("角色不能为空");
             }
             if (info.getUserStatus()==null) {
                 throw new BusinessException("用户状态不能为空");
@@ -383,13 +341,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             if(CollectionUtils.isEmpty(organizationList)){
                 throw new BusinessException("系统中部门"+info.getOrganizationName()+"不存在");
             }
-            QueryWrapper<Role> roleQueryWrapper=new QueryWrapper<>();
-            roleQueryWrapper.eq("role_name",info.getRoleName());
-            List<Role> roleList=roleService.list(roleQueryWrapper);
-            //判断是否存在
-            if(CollectionUtils.isEmpty(roleList)){
-                throw new BusinessException("系统中角色"+info.getRoleName()+"不存在");
-            }
         }
         String pwd = defaultPwd;
         boolean result=false;
@@ -397,10 +348,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             User user=new User();
 
             user.setUserAccount(info.getUserAccount());
-            user.setUserStatus("2");
+            user.setUserName(info.getUserName());
+            user.setUserStatus(info.getUserStatus());
             //密码加密
-            String cryptPwd = BCrypt.hashpw(user.getUserAccount() + pwd, BCrypt.gensalt());
-            user.setUserPassword(cryptPwd);
+//            String cryptPwd = BCrypt.hashpw(user.getUserAccount() + pwd, BCrypt.gensalt());
+            user.setUserPassword(pwd);
+            user.setCreateTime(new Date());
+            user.setCreator(loginUser.getId());
             User userInfo = this.insertUser(user);
             if (userInfo!=null) {
                 //保存用户和组织机构的关系
@@ -411,21 +365,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                 OrganizationUser orgUser = new OrganizationUser();
                 orgUser.setUserId(userInfo.getId());
                 orgUser.setOrganizationId(list.get(0).getId());
+                orgUser.setCreateTime(new Date());
+                orgUser.setCreator(loginUser.getId());
                 result = organizationUserService.save(orgUser);
 
                 //默认增加用户所在机构数据权限值，但是否有操作权限还是会根据资源权限判断
                 DataPermission dataPermission = new DataPermission();
                 dataPermission.setUserId(userInfo.getId());
                 dataPermission.setOrganizationId(list.get(0).getId());
+                dataPermission.setCreateTime(new Date());
+                dataPermission.setCreator(loginUser.getId());
                 result=dataPermissionService.save(dataPermission);
 
-                QueryWrapper<Role> roleQueryWrapper=new QueryWrapper<>();
-                roleQueryWrapper.eq("role_name",info.getRoleName());
-                List<Role> roleList=roleService.list(roleQueryWrapper);
-                UserRole userRole=new UserRole();
-                userRole.setRoleId(roleList.get(0).getId());
-                userRole.setUserId(userInfo.getId());
-                result=userRoleService.save(userRole);
             }
         }
         return result;
@@ -436,17 +387,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
-    public User getUserByOrganizationId(String organizationId) {
-        QueryWrapper<OrganizationUser> queryWrapper=new QueryWrapper<>();
-        queryWrapper.eq("organization_id",organizationId);
-        List<OrganizationUser> organizationUserList = organizationUserService.list(queryWrapper);
-        if (CollectionUtils.isEmpty(organizationUserList)) {
-            throw new BusinessException("查询不到用户部门信息");
-        }
-        User user = this.getById(organizationUserList.get(0).getUserId());
-        if (user == null) {
+    public List<UserInfo> getUserByOrganizationId(String organizationId)  {
+        List<UserInfo> listUserInfo =userMapper.selectUserListByOrganizationId(organizationId);
+        if (listUserInfo==null||listUserInfo.size()<=0) {
             throw new BusinessException("查询不到用户信息");
         }
-        return user;
+        return listUserInfo;
     }
 }

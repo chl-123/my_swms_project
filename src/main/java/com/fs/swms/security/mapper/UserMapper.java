@@ -7,6 +7,8 @@ import com.fs.swms.security.dto.UserInfo;
 import com.fs.swms.security.entity.User;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 /**
  * <p>
  * 用户表 Mapper 接口
@@ -21,4 +23,10 @@ public interface UserMapper extends BaseMapper<User> {
      * @return
      */
     Page<UserInfo> selectUserList(Page<UserInfo> page, @Param("user") QueryUser user);
+    /**
+     * 根据组织机构Id查询用户列表
+     * @param organizationId
+     * @return
+     */
+    List<UserInfo> selectUserListByOrganizationId(@Param("organizationId")String organizationId);
 }

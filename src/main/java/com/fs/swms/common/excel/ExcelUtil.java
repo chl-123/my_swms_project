@@ -6,13 +6,16 @@ import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.metadata.BaseRowModel;
 import com.alibaba.excel.metadata.Sheet;
 import com.alibaba.excel.support.ExcelTypeEnum;
+import com.fs.swms.common.base.BusinessException;
 import com.fs.swms.common.entity.MyFile;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA
@@ -39,6 +42,64 @@ public class ExcelUtil {
             list.add((T)obj);
         }
         return list;
+    }
+    public static <T extends BaseRowModel> List<T> read(MyFile file, Class<T> rowModel, String sheetName
+                                                        ) throws Exception{
+
+        ExcelListener excelListener = new ExcelListener();
+        ExcelReader excelReader = getExcelReader(file.getFile(),excelListener,true);
+        if(excelReader == null){
+            return new ArrayList();
+        }
+        Map<String,Integer> map=new HashMap<>();
+        for(Sheet sheet:excelReader.getSheets()){
+            if (sheet.getSheetName().equals(sheetName)) {
+                map.put(sheetName,1);
+                sheet.setClazz(rowModel);
+                excelReader.read(sheet);
+            }
+        }
+        if (map == null||map.size()==0) {
+            throw new BusinessException("Excel表格中没有【"+sheetName+"】这个Excel表");
+        }
+        List<T> list = new ArrayList<>();
+        for(Object obj:excelListener.getDatas()){
+            list.add((T)obj);
+        }
+        return list;
+    }
+
+    public static <T extends BaseRowModel> List<String>  getSheetName(MyFile file, Class<T> rowModel
+    ) throws Exception{
+
+        ExcelListener excelListener = new ExcelListener();
+        ExcelReader excelReader = getExcelReader(file.getFile(),excelListener,true);
+        List<String> list = new ArrayList<>();
+        for(Sheet sheet:excelReader.getSheets()){
+            String sheetName = sheet.getSheetName();
+            list.add(sheetName);
+        }
+
+        return list;
+    }
+    /**
+     * 读取某个 sheet 的 Excel
+     *
+     * @param excel       文件
+     * @param rowModel    实体类映射，继承 BaseRowModel 类
+     * @param sheetNo     sheet 的序号 从1开始
+     * @param headLineNum 表头行数，默认为1
+     * @return Excel 数据 list
+     */
+    public static List<Object> readExcel(MultipartFile excel, BaseRowModel rowModel, int sheetNo,
+                                         int headLineNum) {
+        ExcelListener excelListener = new ExcelListener();
+        ExcelReader reader = getReader(excel, excelListener);
+        if (reader == null) {
+            return null;
+        }
+        reader.read(new Sheet(sheetNo, headLineNum, rowModel.getClass()));
+        return excelListener.getDatas();
     }
     /**
      *
@@ -109,25 +170,7 @@ public class ExcelUtil {
         return readExcel(excel, rowModel, sheetNo, 1);
     }
 
-    /**
-     * 读取某个 sheet 的 Excel
-     *
-     * @param excel       文件
-     * @param rowModel    实体类映射，继承 BaseRowModel 类
-     * @param sheetNo     sheet 的序号 从1开始
-     * @param headLineNum 表头行数，默认为1
-     * @return Excel 数据 list
-     */
-    public static List<Object> readExcel(MultipartFile excel, BaseRowModel rowModel, int sheetNo,
-                                         int headLineNum) {
-        ExcelListener excelListener = new ExcelListener();
-        ExcelReader reader = getReader(excel, excelListener);
-        if (reader == null) {
-            return null;
-        }
-        reader.read(new Sheet(sheetNo, headLineNum, rowModel.getClass()));
-        return excelListener.getDatas();
-    }
+
 
     /**
      * 导出 Excel ：一个 sheet，带表头

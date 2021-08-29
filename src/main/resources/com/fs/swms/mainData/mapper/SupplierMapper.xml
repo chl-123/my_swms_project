@@ -27,7 +27,7 @@
         <if test="supplier.supplierName != null and supplier.supplierName != ''">
             AND SUPPLIER_NAME like concat(concat('%', #{supplier.supplierName}), '%')
         </if>
-        ORDER BY ID DESC
+        ORDER BY UPDATE_TIME DESC
     </select>
 
     <update id="deleteBySupplierNo">

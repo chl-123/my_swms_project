@@ -1,5 +1,6 @@
 package com.fs.swms.security.dto;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -59,6 +60,6 @@ public class QueryUser implements Serializable
 
     private String endDate;
 
-//    @ApiModelProperty(value = "组织机构id")
-//    private String organizationId;
+    @ApiModelProperty(value = "组织机构id")
+    private String organizationId;
 }
